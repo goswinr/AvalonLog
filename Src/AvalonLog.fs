@@ -141,7 +141,7 @@ type AvalonLog () =
     
     /// use true to enable Line wrap.
     /// will enable HorizontalScrollBarVisibility if setting false
-    member this.setLineWrap(v)=
+    member this.SetLineWrap(v)=
         if v then 
             log.WordWrap         <- true 
             log.HorizontalScrollBarVisibility <- ScrollBarVisibility.Disabled 
