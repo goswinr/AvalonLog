@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <UseWPF>true</UseWPF>    
-    <TargetFramework>net452</TargetFramework>    
+    <TargetFramework>net472</TargetFramework>    <!-- not net452 because of long file names-->
     <LangVersion>preview</LangVersion>
     
     <NeutralLanguage>en</NeutralLanguage>
