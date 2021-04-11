@@ -1,11 +1,9 @@
 ﻿namespace AvalonLog
 
-open AvalonLog.Util
 open System
-open ICSharpCode
 open System.Windows.Media // for color brushes
-
-
+open ICSharpCode
+open AvalonLog.Util
  
 /// Highlight-all-occurrences-of-selected-text in Log Text View
 /// if the selection is more then two non-whitespace characters.
@@ -13,12 +11,11 @@ type SelectedTextHighlighter (lg:AvalonEdit.TextEditor) =
     inherit AvalonEdit.Rendering.DocumentColorizingTransformer()    
     //  based on https://stackoverflow.com/questions/9223674/highlight-all-occurrences-of-selected-word-in-avalonedit  
 
-
     
     let mutable highTxt = null
     let mutable curSelStart = -1
 
-    // events for a status bar or other UI
+    // Events for a status bar or other UI
     let highlightClearedEv  = new Event<unit>()
     let highlightChangedEv  = new Event<string*int>()
     
@@ -30,19 +27,16 @@ type SelectedTextHighlighter (lg:AvalonEdit.TextEditor) =
     [<CLIEvent>]
     member this.OnHighlightChanged = highlightChangedEv.Publish
    
+
     /// The color used for highlighting other occurances
-    member val ColorHighlight = Brushes.Blue |> Brush.brighter 210  |> Brush.freeze
-    
-    
+    member val ColorHighlight = Brushes.Blue |> Brush.brighter 210  |> Brush.freeze  
     
     /// This gets called for every visible line on any view change
-    override this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) =       
-                
+    override this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) = 
         if notNull highTxt  then
             let  lineStartOffset = line.Offset;
             let  text = lg.Document.GetText(line)            
-            let mutable  index = text.IndexOf(highTxt, 0, StringComparison.Ordinal)
-    
+            let mutable  index = text.IndexOf(highTxt, 0, StringComparison.Ordinal)    
             while index >= 0 do      
                 let st = lineStartOffset + index  // startOffset
                 let en = lineStartOffset + index + highTxt.Length // endOffset   
@@ -60,7 +54,6 @@ type SelectedTextHighlighter (lg:AvalonEdit.TextEditor) =
             selTxt.Trim().Length >= 2 // minimum 2 non whitespace characters?
             && not <| selTxt.Contains("\n")  //no line beaks          
             && not <| selTxt.Contains("\r")  //no line beaks
-            
             
         if doHighlight then 
 
@@ -83,7 +76,7 @@ type SelectedTextHighlighter (lg:AvalonEdit.TextEditor) =
                     else
                         index <- tx.IndexOf(selTxt, st, StringComparison.Ordinal)
                                    
-                do! Async.SwitchToContext Sync.syncContext
+                do! Async.SwitchToContext Sync.context
                 highlightChangedEv.Trigger(selTxt, k  )    // to update status bar or similar UI
                 }   |> Async.Start
     
