@@ -74,6 +74,7 @@ type Sync private () =
     /// optionally writes a log file to the desktop if it fails, since these errors can be really hard to debug
     static let installSynchronizationContext (logErrosOnDesktop) =         
         if SynchronizationContext.Current = null then 
+            // https://stackoverflow.com/questions/10448987/dispatcher-currentdispatcher-vs-application-current-dispatcher
             DispatcherSynchronizationContext(Windows.Application.Current.Dispatcher) |> SynchronizationContext.SetSynchronizationContext
         ctx <- SynchronizationContext.Current
             

@@ -50,7 +50,7 @@ type ColorizingTransformer(ed:AvalonEdit.TextEditor, offsetColors: ResizeArray<N
     let mutable selEnd   = -9
     let mutable any = false
 
-    member this.SelectionChangedDelegate ( a:EventArgs) =
+    member _.SelectionChangedDelegate ( a:EventArgs) =
         if ed.SelectionLength = 0 then // no selection 
             selStart <- -9
             selEnd   <- -9

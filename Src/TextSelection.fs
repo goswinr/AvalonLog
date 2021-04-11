@@ -21,11 +21,11 @@ type SelectedTextHighlighter (lg:AvalonEdit.TextEditor) =
     
     /// Occures when the selection clears or or is less than two non-whitespace Characters
     [<CLIEvent>]
-    member this.OnHighlightCleared = highlightClearedEv.Publish
+    member _.OnHighlightCleared = highlightClearedEv.Publish
  
     /// Occures when the selection changes to more than two non-whitespace Characters
     [<CLIEvent>]
-    member this.OnHighlightChanged = highlightChangedEv.Publish
+    member _.OnHighlightChanged = highlightChangedEv.Publish
    
 
     /// The color used for highlighting other occurances
@@ -48,7 +48,7 @@ type SelectedTextHighlighter (lg:AvalonEdit.TextEditor) =
         
  
         
-    member this.SelectionChangedDelegate (a:EventArgs) =        
+    member _.SelectionChangedDelegate (a:EventArgs) =        
         let selTxt = lg.SelectedText    // for block selection this will contain everything from first segment till last segment, even the unselected. 
         let doHighlight = 
             selTxt.Trim().Length >= 2 // minimum 2 non whitespace characters?
