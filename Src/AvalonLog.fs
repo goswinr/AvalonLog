@@ -27,7 +27,7 @@ type LogTextWriter(writeStr) =
 /// Dont append or change the AvalonEdit.Text property directly. This will mess up the coloring
 /// only use the printfn functions of this class
 type AvalonLog () =    
-    inherit ContentControl()    
+    inherit ContentControl()  // the most simple and generic type of UIelement container, like a <div> in html  
     
     /// Stores all the locations where a new color starts. 
     /// Will be searched via binary serach in colorizing transformers
@@ -38,7 +38,7 @@ type AvalonLog () =
     let colo = new ColorizingTransformer(log,offsetColors)
 
     do    
-        base.Content <- log  //nest Avlonedit inside a panel to hide most of its functionality
+        base.Content <- log  //nest Avlonedit inside a simple ContentControl to hide most of its functionality
 
         log.FontFamily <- FontFamily("Consolas")
         log.FontSize <- 14.0
