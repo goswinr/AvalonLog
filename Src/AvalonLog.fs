@@ -141,17 +141,16 @@ type AvalonLog () =
                             do! Async.SwitchToContext Sync.context
                             printToLog()                
                         } |> Async.StartImmediate 
-               
-    
+                   
      //-----------------------------------------------------------    
-     //----------------------AvalonEdit members:------------------------------------------    
+     //----------------------exposed AvalonEdit members:------------------------------------------    
      //------------------------------------------------------------    
 
 
     member  _.FontFamily       with get() = log.FontFamily                  and set v = log.FontFamily <- v
     member  _.FontSize         with get() = log.FontSize                    and set v = log.FontSize  <- v
     member  _.Encoding         with get() = log.Encoding                    and set v = log.Encoding <- v   
-    member  _.ShowLineNumbers  with get() = log.ShowLineNumbers             and set v = log.ShowLineNumbers <- v 
+    member  _.ShowLineNumbers  with get() = log.ShowLineNumbers             and set v = log.ShowLineNumbers <- v     
     member  _.EnableHyperlinks with get() = log.Options.EnableHyperlinks    and set v = log.Options.EnableHyperlinks  <- v
 
     /// Use true to enable Line Wrap.
@@ -205,74 +204,84 @@ type AvalonLog () =
         let br = Brush.make(red,green,blue)
         new LogTextWriter(fun s -> printOrBuffer (s, false, br))
 
-        
+    //--------------------------------------    
     // for use with a string:
+    //--------------------------------------    
 
     
-    /// Then print (without adding a new line at the end)
-    member _.AppendText s = 
+    /// Print string using default color (Black)
+    member _.Append s = 
             printOrBuffer (s, false, Global.defaultBrush )   
 
-
-    /// Change custom color to a RGB value ( each between 0 and 255) 
-    /// Then print (without adding a new line at the end)
-    member _.PrintColor red green blue s = 
+    /// Print string using red, green and blue color values (each between 0 and 255). 
+    /// (without adding a new line at the end).
+    member _.AppendWithColor red green blue s = 
             Global.setCustom (red,green,blue)
             printOrBuffer (s, false, Global.customBrush )    
        
-    /// Change custom color to a RGB value ( each between 0 and 255) 
+    /// Print string using red, green and blue color values (each between 0 and 255). 
     /// Adds a new line at the end
-    member _.PrintnColor red green blue s =
+    member _.AppendLineWithColor red green blue s =
             Global.setCustom (red,green,blue)
             printOrBuffer (s, true, Global.customBrush ) 
 
-    /// Provide a frozen Brush 
-    /// Then print (without adding a new line at the end)
-    member _.PrintBrush (br:SolidColorBrush) s = 
+    /// Print string using the Brush provided.
+    /// (without adding a new line at the end).
+    member _.AppendWithBrush (br:SolidColorBrush) s = 
             Global.customBrush <- br
             printOrBuffer (s, false, Global.customBrush )    
        
-    /// Provide a frozen Brush 
-    /// Adds a new line at the end
-    member _.PrintnBrush (br:SolidColorBrush) s =
+    /// Print string using the Brush provided.    
+    /// Adds a new line at the end.
+    member _.AppendLineWithBrush (br:SolidColorBrush) s =
             Global.customBrush <- br
             printOrBuffer (s, true, Global.customBrush) 
-            
    
+    /// Print string using the last Brush or color provided.
+    /// (without adding a new line at the end
+    member _.AppendWithLastColor s =  
+        printOrBuffer (s, false, Global.customBrush)
+     
+    /// Print string using the last Brush or color provided.
+    /// Adds a new line at the end
+    member _.AppendLineWithLastColor s =  
+        printOrBuffer (s, true, Global.customBrush)
+   
+   //--------------------------------------
    // with F# string formating:
+   //--------------------------------------
 
 
-    /// Print using the Brush provided 
-    /// (without adding a new line at the end)
-    member _.PrintfBrush (br:SolidColorBrush) s = 
+    /// F# printf formating using the Brush provided.
+    /// (without adding a new line at the end).
+    member _.printfBrush (br:SolidColorBrush) s = 
         Global.customBrush <- br
         Printf.kprintf (fun s -> printOrBuffer (s, false, Global.customBrush))  s    
 
-    /// Print using the Brush provided
-    /// Adds a new line at the end
-    member _.PrintfnBrush (br:SolidColorBrush) s = 
+    /// F# printfn formating using the Brush provided.
+    /// Adds a new line at the end.
+    member _.printfnBrush (br:SolidColorBrush) s = 
         Global.customBrush <- br
         Printf.kprintf (fun s -> printOrBuffer (s, true, Global.customBrush))  s       
     
-
-    /// Change custom color to a RGB value ( each between 0 and 255) 
-    /// Then print (without adding a new line at the end)
-    member _.PrintfColor red green blue msg =
+    /// F# printf formating using red, green and blue color values (each between 0 and 255). 
+    /// (without adding a new line at the end)
+    member _.printfColor red green blue msg =
         Global.setCustom (red,green,blue)
         Printf.kprintf (fun s -> printOrBuffer (s,false, Global.customBrush ))  msg
     
-    /// Change custom color to a RGB value ( each between 0 and 255) 
-    /// Then print. Adds a new line at the end
-    member _.PrintfnColor red green blue msg =          
+    /// F# printfn formating using red, green and blue color values (each between 0 and 255. 
+    /// Adds a new line at the end
+    member _.printfnColor red green blue msg =          
         Global.setCustom (red,green,blue)
         Printf.kprintf (fun s -> printOrBuffer (s,true, Global.customBrush ))  msg       
 
-    /// Print using the last Brush or color provided
+    /// F# printf formating using the last Brush or color provided.
     /// (without adding a new line at the end
-    member _.PrintfLastColor msg =     
+    member _.printfLastColor msg =     
         Printf.kprintf (fun s -> printOrBuffer (s, false, Global.customBrush))  msg
    
-    /// Print using the last Brush or color provided 
+    /// F# printfn formating using the last Brush or color provided.
     /// Adds a new line at the end
-    member _.PrintfnLastColor msg =     
+    member _.printfnLastColor msg =     
         Printf.kprintf (fun s -> printOrBuffer (s, true, Global.customBrush))  msg
