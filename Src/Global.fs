@@ -1,6 +1,5 @@
 ﻿namespace AvalonLog
 
-
 open System.Windows.Media // for color brushes
 
 module Global =
