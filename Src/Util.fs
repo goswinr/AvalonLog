@@ -23,33 +23,41 @@ open System
 open System.Threading
 open System.Windows.Threading
 
+
 type Sync private () =    
-        
-    static let mutable ctx : SynchronizationContext = null  // will be set in main UI STAThread    
     
-    /// the UI SynchronizationContext to switch to inside async CEs
-    static member syncContext = ctx
+    static let mutable errorFileWrittenOnce = false // to not create more than one error file on Desktop per app run
+
+    static let mutable ctx : SynchronizationContext = null  // will be set on first access
     
-    /// to ensure SynchronizationContext is set up.
-    static member  installSynchronizationContext () =         
+    /// To ensure SynchronizationContext is set up.
+    /// optionally writes a log file to the desktop if it fails, since these errors can be really hard to debug
+    static let  installSynchronizationContext (logErrosOnDesktop) =         
         if SynchronizationContext.Current = null then 
-            DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher) |> SynchronizationContext.SetSynchronizationContext
+            DispatcherSynchronizationContext(Windows.Application.Current.Dispatcher) |> SynchronizationContext.SetSynchronizationContext
         ctx <- SynchronizationContext.Current
             
-        if isNull ctx then 
+        if isNull ctx && logErrosOnDesktop && not errorFileWrittenOnce then 
             // reporting this to the UI instead would not work since there is no sync context for the UI
             let time = DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss-fff") // to ensure unique file names  
             let filename = sprintf "AvalonLog-SynchronizationContext failed-%s.txt" time
             let desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
             let file = IO.Path.Combine(desktop,filename)
-            try IO.File.WriteAllText(file, "Failed to get DispatcherSynchronizationContext") with _ -> () // file might be open or locked    
+            try IO.File.WriteAllText(file, "Failed to get DispatcherSynchronizationContext") with _ -> () // file might be open or locked 
+            errorFileWrittenOnce <- true
+            failwith ("See" + file)
     
+   
+    /// the UI SynchronizationContext to switch to inside async CEs
+    static member context =
+        if isNull ctx then installSynchronizationContext(true)
+        ctx 
     
-        
-    static member doSync (f) = 
+    /// Runs function on UI thread    
+    static member doSync(func) = 
         async {
             do! Async.SwitchToContext ctx
-            f()
+            func()
             } |> Async.StartImmediate
     
     
@@ -68,23 +76,23 @@ module Brush =
         let b = int col.B + amount |> clamp
         Color.FromArgb(col.A, r,g,b)
     
-    ///Adds bytes to each color channel to increase brightness
+    /// Adds bytes to each color channel to increase brightness
     /// result will be clamped between 0 and 255
     let brighter (amount:int) (br:SolidColorBrush)  = SolidColorBrush(changeLuminace amount br.Color) 
     
-    ///Removes bytes from each color channel to increase darkness, 
+    /// Removes bytes from each color channel to increase darkness, 
     /// result will be clamped between 0 and 255
     let darker  (amount:int) (br:SolidColorBrush)  = SolidColorBrush(changeLuminace -amount br.Color) 
 
 
-    //make it therad safe and faster
+    /// Make it therad safe and faster
     let inline freeze(br:SolidColorBrush)= 
         if not br.IsFrozen then
             if br.CanFreeze then br.Freeze()
             else                 eprintfn "Could not freeze SolidColorBrush: %A" br         
         br
     
-    /// returns a frozen SolidColorBrush
+    /// Returns a frozen SolidColorBrush
     let make (red,green,blue) = 
         let r = byte red
         let g = byte green
