@@ -2,7 +2,7 @@
 
 open AvalonLog.Util
 open System
-open ICSharpCode
+open AvalonEditB
 open System.Windows.Media // for color brushes
 
 
@@ -43,8 +43,8 @@ type RangeColor =
 
 
 /// To implement the actual colors from colored printing
-type ColorizingTransformer(ed:AvalonEdit.TextEditor, offsetColors: ResizeArray<NewColor>) =  
-    inherit AvalonEdit.Rendering.DocumentColorizingTransformer()
+type ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>) =  
+    inherit Rendering.DocumentColorizingTransformer()
     
     let mutable selStart = -9
     let mutable selEnd   = -9
@@ -60,7 +60,7 @@ type ColorizingTransformer(ed:AvalonEdit.TextEditor, offsetColors: ResizeArray<N
         
 
     /// This gets called for every visible line on any view change
-    override this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) = 
+    override this.ColorizeLine(line:Document.DocumentLine) = 
         if not line.IsDeleted then  
             let stLn = line.Offset
             let enLn = line.EndOffset

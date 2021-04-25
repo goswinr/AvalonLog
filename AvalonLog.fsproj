@@ -33,13 +33,17 @@
 
   <ItemGroup>
     <!-- <PackageReference Update="FSharp.Core" Version="5.0.1" />  don't do this for libraries, only exe-->
-    <PackageReference Include="AvalonEdit" Version="6.1.1" />
+    <!--<PackageReference Include="AvalonEdit" Version="6.1.1" />-->
   </ItemGroup>
 
   <ItemGroup>            
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="AvalonEditB">
+      <!-- build from dev branch of https://github.com/goswinr/AvalonEditB -->
+      <HintPath>../AvalonEditB/AvalonEditB/bin/Release/net472/AvalonEditB.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 

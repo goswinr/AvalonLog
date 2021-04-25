@@ -2,13 +2,13 @@
 
 open System
 open System.Windows.Media // for color brushes
-open ICSharpCode
+open AvalonEditB
 open AvalonLog.Util
  
 /// Highlight-all-occurrences-of-selected-text in Log Text View
 /// if the selection is more then two non-whitespace characters.
-type SelectedTextHighlighter (lg:AvalonEdit.TextEditor) = 
-    inherit AvalonEdit.Rendering.DocumentColorizingTransformer()    
+type SelectedTextHighlighter (lg:TextEditor) = 
+    inherit Rendering.DocumentColorizingTransformer()    
     //  based on https://stackoverflow.com/questions/9223674/highlight-all-occurrences-of-selected-word-in-avalonedit  
 
     
@@ -32,7 +32,7 @@ type SelectedTextHighlighter (lg:AvalonEdit.TextEditor) =
     member val ColorHighlight = Brushes.Blue |> Brush.brighter 210  |> Brush.freeze  
     
     /// This gets called for every visible line on any view change
-    override this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) = 
+    override this.ColorizeLine(line:Document.DocumentLine) = 
         if notNull highTxt  then
             let  lineStartOffset = line.Offset;
             let  text = lg.Document.GetText(line)            

@@ -4,7 +4,7 @@ open AvalonLog.Util
 open System
 open System.IO
 open System.Threading
-open ICSharpCode
+open AvalonEditB
 open System.Windows.Media // for color brushes
 open System.Text
 open System.Diagnostics
@@ -33,7 +33,7 @@ type AvalonLog () =
     /// Will be searched via binary serach in colorizing transformers
     let offsetColors = ResizeArray<NewColor>( [ {off = -1 ; brush=null} ] )    // null is console out // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) .. 
     
-    let log =  new AvalonEdit.TextEditor()    
+    let log =  new TextEditor()    
     let hiLi = new SelectedTextHighlighter(log)
     let colo = new ColorizingTransformer(log,offsetColors)
 
@@ -55,7 +55,7 @@ type AvalonLog () =
         log.TextArea.SelectionChanged.Add hiLi.SelectionChangedDelegate
         log.TextArea.TextView.LineTransformers.Add(hiLi)
 
-        AvalonEdit.Search.SearchPanel.Install(log) |> ignoreObj //TODO disable search and replace if using custom build?
+        Search.SearchPanel.Install(log) |> ignoreObj //TODO disable search and replace if using custom build?
         
         Global.defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze) // just to be sure they are the same
         //log.Foreground.Changed.Add ( fun _ -> LogColors.consoleOut <- (log.Foreground.Clone() :?> SolidColorBrush |> freeze)) // this event attaching can't  be done because it is already frozen
