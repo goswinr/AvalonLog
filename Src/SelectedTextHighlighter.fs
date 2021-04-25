@@ -25,8 +25,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
  
     /// Occures when the selection changes to more than two non-whitespace Characters
     [<CLIEvent>]
-    member _.OnHighlightChanged = highlightChangedEv.Publish
-   
+    member _.OnHighlightChanged = highlightChangedEv.Publish   
 
     /// The color used for highlighting other occurances
     member val ColorHighlight = Brushes.Blue |> Brush.brighter 210  |> Brush.freeze  
@@ -50,19 +49,19 @@ type SelectedTextHighlighter (lg:TextEditor) =
         
     member _.SelectionChangedDelegate (a:EventArgs) =        
         let selTxt = lg.SelectedText    // for block selection this will contain everything from first segment till last segment, even the unselected. 
-        let doHighlight = 
+        let doHighlightNow = 
             selTxt.Trim().Length >= 2 // minimum 2 non whitespace characters?
             && not <| selTxt.Contains("\n")  //no line beaks          
             && not <| selTxt.Contains("\r")  //no line beaks
             
-        if doHighlight then 
+        if doHighlightNow then 
 
             // for current text view:
             highTxt <- selTxt
             curSelStart <- lg.SelectionStart
             lg.TextArea.TextView.Redraw()
         
-            // for events to  complete count in full document : 
+            // for events to complete count in full document : 
             let doc = lg.Document // get doc in sync first !
             async{
                 let tx = doc.CreateSnapshot().Text
@@ -77,7 +76,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
                         index <- tx.IndexOf(selTxt, st, StringComparison.Ordinal)
                                    
                 do! Async.SwitchToContext Sync.context
-                highlightChangedEv.Trigger(selTxt, k  )    // to update status bar or similar UI
+                highlightChangedEv.Trigger(selTxt, k)    // to update status bar or similar UI
                 }   |> Async.Start
     
         else

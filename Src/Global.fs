@@ -1,9 +1,10 @@
 ﻿namespace AvalonLog
 
 open System.Windows.Media // for color brushes
+open AvalonLog.Brush
 
 module Global =
-    open Brush
+    
 
     /// Same as default forgroundin underlaing AvalonEdit. 
     /// Will be set on AvalonEdit foreground brush changes

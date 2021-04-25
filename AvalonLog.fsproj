@@ -51,7 +51,7 @@
     <Compile Include="Src/Util.fs" />
     <Compile Include="Src/Global.fs" />
     <Compile Include="Src/TextColor.fs" />
-    <Compile Include="Src/TextSelection.fs" />
+    <Compile Include="Src\SelectedTextHighlighter.fs" />
     <Compile Include="Src/AvalonLog.fs" />
   </ItemGroup>
 

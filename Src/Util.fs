@@ -25,7 +25,7 @@ module Brush =
 
   /// Adds bytes to each color channel to increase brightness, negative values to make darker
   /// result will be clamped between 0 and 255
-  let changeLuminace (amount:int) (col:Windows.Media.Color)=
+  let inline private changeLuminace (amount:int) (col:Windows.Media.Color)=
       let inline clamp x = if x<0 then 0uy elif x>255 then 255uy else byte(x)
       let r = int col.R + amount |> clamp      
       let g = int col.G + amount |> clamp
@@ -45,11 +45,11 @@ module Brush =
   let inline freeze(br:SolidColorBrush)= 
       if not br.IsFrozen then
           if br.CanFreeze then br.Freeze()
-          else                 eprintfn "Could not freeze SolidColorBrush: %A" br         
+          //else                 eprintfn "Could not freeze SolidColorBrush: %A" br         
       br
   
   /// Returns a frozen SolidColorBrush
-  let make (red,green,blue) = 
+  let inline make (red,green,blue) = 
       let r = byte red
       let g = byte green
       let b = byte blue
@@ -57,15 +57,16 @@ module Brush =
 
     
 
-open System
-open System.Threading
-open System.Windows.Threading
 
+open System
+    open System.Threading
+    open System.Windows.Threading
 
 /// Threading Utils to setup and access the SynchronizationContext 
 /// and evaluate any function on UI thread (Sync.doSync(f))
 type Sync private () =    
     
+
     static let mutable errorFileWrittenOnce = false // to not create more than one error file on Desktop per app run
 
     static let mutable ctx : SynchronizationContext = null  // will be set on first access
@@ -97,6 +98,7 @@ type Sync private () =
     
     /// Runs function on UI thread    
     static member doSync(func) = 
+        //Windows.Application.Current.Dispatcher.Invoke(func) // would not propagate exceptions ?
         async {
             do! Async.SwitchToContext Sync.context
             func()
