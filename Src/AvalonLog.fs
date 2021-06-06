@@ -279,7 +279,7 @@ type AvalonLog () =
         Global.setCustom (red,green,blue)
         Printf.kprintf (fun s -> printOrBuffer (s,false, Global.customBrush ))  msg
     
-    /// F# printfn formating using red, green and blue color values (each between 0 and 255. 
+    /// F# printfn formating using red, green and blue color values (each between 0 and 255).
     /// Adds a new line at the end
     member _.printfnColor red green blue msg =          
         Global.setCustom (red,green,blue)
