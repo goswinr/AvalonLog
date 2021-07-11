@@ -55,8 +55,6 @@ module Brush =
       let b = byte blue
       freeze (new SolidColorBrush(Color.FromRgb(r,g,b)))  
 
-    
-
 
 open System
     open System.Threading
@@ -64,8 +62,7 @@ open System
 
 /// Threading Utils to setup and access the SynchronizationContext 
 /// and evaluate any function on UI thread (Sync.doSync(f))
-type Sync private () =    
-    
+type Sync private () =   
 
     static let mutable errorFileWrittenOnce = false // to not create more than one error file on Desktop per app run
 

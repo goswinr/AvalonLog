@@ -67,7 +67,7 @@ type AvalonLog () =
     let mutable docLength = 0  //to be able to have the doc length async
     let mutable maxCharsInLog = 1024_000 // about 10k lines with 100 chars each
     let mutable stillLessThanMaxChars = true
-        
+    let mutable dontPrintJustBuffer = false // for use in this.Clear() to make sur a print after a clear does not get swallowed        
     
     //-----------------------------------------------------------------------------------
     // The below functions are trying to work around double UI update in printfn for better UI performance, 
@@ -83,10 +83,11 @@ type AvalonLog () =
 
     let printToLog() =          
         let txt = lock buffer getBufferText //lock for safe access   
-        log.AppendText(txt)     // TODO is it possibel that avalon edit skips adding some escape ANSI characters to document?? then docLength could be out of sync !! TODO
-        log.ScrollToEnd()
-        if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712  
-        stopWatch.Restart()
+        if txt.Length>0 then //might be empty from calls during dontPrintJustBuffer = true
+            log.AppendText(txt)     // TODO is it possibel that avalon edit skips adding some escape ANSI characters to document?? then docLength could be out of sync !! TODO
+            log.ScrollToEnd()
+            if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712  
+            stopWatch.Restart()
 
     let newLine = Environment.NewLine
 
@@ -95,34 +96,44 @@ type AvalonLog () =
     /// Sets line color on LineColors dictionay for DocumentColorizingTransformer. 
     /// printOrBuffer (txt:string, addNewLine:bool, typ:SolidColorBrush)
     let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence charctars and dont print or count them, how many are skiped by avaedit during Text.Append??
-        if stillLessThanMaxChars && txt.Length <> 0 then
-            // Change color if needed:
-            if prevMsgBrush <> brush then 
-                lock buffer (fun () -> 
+        if stillLessThanMaxChars && txt.Length <> 0 then            
+            lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
+                // Change color if needed:
+                if prevMsgBrush <> brush then                    
                     offsetColors.Add { off = docLength; brush = brush } // TODO filter out ANSI escape chars first or just keep them in the doc but not in the visual line ??
-                    prevMsgBrush <- brush )
-               
+                    prevMsgBrush <- brush 
             
-            // add to buffer locked:
-            if addNewLine then 
-                lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
+                // add to buffer
+                if addNewLine then
                     buffer.AppendLine(txt)  |> ignoreObj
-                    docLength <- docLength + txt.Length + newLine.Length) 
-            else                
-                lock buffer (fun () -> 
+                    docLength <- docLength + txt.Length + newLine.Length
+                else
                     buffer.Append(txt)  |> ignoreObj
-                    docLength <- docLength + txt.Length   ) 
-            
+                    docLength <- docLength + txt.Length
+            )
+
             // check if total text in log  is already to big , print it and then stop printing
             if docLength > maxCharsInLog then // neded when log gets piled up with exception messages form Avalonedit rendering pipeline.
                 stillLessThanMaxChars <- false                
                 async { 
                     do! Async.SwitchToContext Sync.context  
-                    printToLog()
+                    printToLog()// runs with a lock too
                     log.AppendText(sprintf "%s%s  *** STOP OF LOGGING *** Log has more than %d characters! clear Log view first" newLine newLine maxCharsInLog)
                     log.ScrollToEnd()
                     log.ScrollToEnd() // call twice because of https://github.com/icsharpcode/AvalonEdit/issues/226
                     } |> Async.StartImmediate  
+            
+
+            elif dontPrintJustBuffer then // wait really long before printing
+                async {                        
+                    let k = Interlocked.Increment printCallsCounter
+                    do! Async.Sleep 100
+                    while dontPrintJustBuffer do // wait till dontPrintJustBuffer is set true from end of this.Clear() call
+                        do! Async.Sleep 100
+                    if !printCallsCounter = k  then //it is the last call for 500 ms
+                        log.Dispatcher.Invoke(printToLog)                 
+                    } |> Async.StartImmediate 
+
             else
                 // check the two criteria for actually printing
                 // print case 1: sine the last printing more than 100ms have elapsed
@@ -131,21 +142,23 @@ type AvalonLog () =
                     //log.Dispatcher.Invoke( printToLog) // TODO a bit faster probably and less verbose than async here but would this propagate exceptions too ?
                     async { 
                         do! Async.SwitchToContext Sync.context
-                        printToLog()
+                        printToLog() // runs with a lock too
                         } |> Async.StartImmediate                 
                 else
                     async {                        
                         let k = Interlocked.Increment printCallsCounter
                         do! Async.Sleep 100
                         if !printCallsCounter = k  then //print case 2, it is the last call for 100 ms
-                            log.Dispatcher.Invoke( printToLog)                 
+                            log.Dispatcher.Invoke(printToLog)                 
                         } |> Async.StartImmediate 
-                   
+                    
      //-----------------------------------------------------------    
      //----------------------exposed AvalonEdit members:------------------------------------------    
      //------------------------------------------------------------    
 
 
+    member  _.VerticalScrollBarVisibility   with get() = log.VerticalScrollBarVisibility     and set v = log.VerticalScrollBarVisibility <- v
+    member  _.HorizontalScrollBarVisibility with get() = log.HorizontalScrollBarVisibility   and set v = log.HorizontalScrollBarVisibility <- v
     member  _.FontFamily       with get() = log.FontFamily                  and set v = log.FontFamily <- v
     member  _.FontSize         with get() = log.FontSize                    and set v = log.FontSize  <- v
     member  _.Encoding         with get() = log.Encoding                    and set v = log.Encoding <- v   
@@ -188,23 +201,32 @@ type AvalonLog () =
     /// The Highligther for selected text
     member _.SelectedTextHighLighter = hiLi
     
-    /// Clear all Text ( also Thread safe)
-    member _.Clear() = 
-        Sync.doSync (fun () -> 
-            log.SelectionLength <- 0
-            log.SelectionStart <- 0        
-            log.Clear()
-            docLength <- 0
-            prevMsgBrush <- null
-            stillLessThanMaxChars <- true
-            offsetColors.Clear()
-            Global.defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze)   // TODO or remeber custstom brush ?
-            offsetColors.Add {off = -1 ; brush=null} //TODO use -1 instead? // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) .. 
-            
-            //log.TextArea.TextView.linesCollapsedVisualPosOffThrowCount <- 0 // custom property in Avalonedit to avoid throwing too many exceptions. set 0 so exceptions appear again // TODO Use custom build from AvalonLog
-            ///GlobalErrorHandeling.throwCount <- 0 // set 0 so exceptions appear again
+    /// Clear all Text. (threadsafe)
+    /// The Color of the last print will still be remebered
+    /// e.g. for log.AppendWithLastColor(..)
+    member _.Clear() :unit = 
+        dontPrintJustBuffer<- true
+        stopWatch.Restart()
+        buffer.Clear() |> ignoreObj
+        docLength <- 0
+        prevMsgBrush <- null
+        stillLessThanMaxChars <- true
+        printCallsCounter := 0L    
+        offsetColors.Clear()
+        offsetColors.Add {off = -1 ; brush=null} //TODO use -1 instead? // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) .. 
+        async{
+            do! Async.SwitchToContext Sync.context        
+            lock buffer (fun () ->                             
+                log.SelectionLength <- 0
+                log.SelectionStart <- 0
+                log.Clear()
+                Global.defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze)   // TODO or remeber custstom brush ?
+                dontPrintJustBuffer <- false // this is important to release pending prints stuck in while loop in printOrBuffer()
+                //log.TextArea.TextView.linesCollapsedVisualPosOffThrowCount <- 0 // custom property in Avalonedit to avoid throwing too many exceptions. set 0 so exceptions appear again // TODO Use custom build from AvalonLog            
             )
-    
+        }
+        |> Async.StartImmediate  
+
 
     /// Returns a threadsafe Textwriter that prints to AvalonLog in Color  
     /// for use as use System.Console.SetOut(textWriter) 
@@ -214,7 +236,7 @@ type AvalonLog () =
         new LogTextWriter(fun s -> printOrBuffer (s, false, br))
 
     //--------------------------------------    
-    // for use with a string:
+    // Append string:
     //--------------------------------------    
 
     
@@ -227,29 +249,40 @@ type AvalonLog () =
     member _.AppendWithColor red green blue s = 
         Global.setCustom (red,green,blue)
         printOrBuffer (s, false, Global.customBrush )    
-       
+    
+    /// Print string using the Brush provided.
+    /// (without adding a new line at the end).
+    member _.AppendWithBrush (br:SolidColorBrush) s = 
+        Global.customBrush <- br
+        printOrBuffer (s, false, Global.customBrush )       
+
+    /// Print string using the last Brush or color provided.
+    /// (without adding a new line at the end
+    member _.AppendWithLastColor s =  
+        printOrBuffer (s, false, Global.customBrush)
+
+    //--------------------------------------    
+    // AppendLine string:
+    //--------------------------------------  
+    
+    /// Print string using default color (Black)
+    /// Adds a new line at the end
+    member _.AppendLine s = 
+        printOrBuffer (s, true, Global.defaultBrush )
+
+
     /// Print string using red, green and blue color values (each between 0 and 255). 
     /// Adds a new line at the end
     member _.AppendLineWithColor red green blue s =
         Global.setCustom (red,green,blue)
         printOrBuffer (s, true, Global.customBrush ) 
-
-    /// Print string using the Brush provided.
-    /// (without adding a new line at the end).
-    member _.AppendWithBrush (br:SolidColorBrush) s = 
-        Global.customBrush <- br
-        printOrBuffer (s, false, Global.customBrush )    
        
     /// Print string using the Brush provided.    
     /// Adds a new line at the end.
     member _.AppendLineWithBrush (br:SolidColorBrush) s =
         Global.customBrush <- br
-        printOrBuffer (s, true, Global.customBrush) 
-   
-    /// Print string using the last Brush or color provided.
-    /// (without adding a new line at the end
-    member _.AppendWithLastColor s =  
-        printOrBuffer (s, false, Global.customBrush)
+        printOrBuffer (s, true, Global.customBrush)    
+    
      
     /// Print string using the last Brush or color provided.
     /// Adds a new line at the end
