@@ -3,8 +3,8 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
+    <TargetFrameworks>net472;net50-windows</TargetFrameworks>  
     <UseWPF>true</UseWPF>    
-    <TargetFramework>net472</TargetFramework>    <!-- not net452 because of long file names-->
     <LangVersion>preview</LangVersion>
     
     <NeutralLanguage>en</NeutralLanguage>
@@ -13,43 +13,57 @@
 
     <RootNamespace>AvalonLog</RootNamespace>
     <AssemblyName>AvalonLog</AssemblyName>
-    <Version>0.1.0.0</Version>
-    <AssemblyVersion>0.1.0.0</AssemblyVersion>
-    <FileVersion>0.1.0.0</FileVersion>
-    
-    <Authors>Goswin Rothenthal</Authors>
+    <AssemblyTitle>AvalonLog</AssemblyTitle>
+    <Title>AvalonLog</Title>  
     <Product>AvalonLog</Product>
-    <Description>A threadsave and colorful text viewer based on AvalonEdit</Description>
+    <PackageId>AvalonLog</PackageId>  
+
+    <Version>0.2.0.0</Version>
+    <AssemblyVersion>0.2.0.0</AssemblyVersion>
+    <FileVersion>0.2.0.0</FileVersion>
+    <PackageReleaseNotes>First release based on AvalonEditB 1.0.0 </PackageReleaseNotes>
+
+    
+    <Authors>GoswinR</Authors>
     <Copyright>Goswin Rothenthal 2021</Copyright>
+
+    <Description>A fast and threadsave WPF text viewer for colored printing from F#. Based on AvalonEdit</Description>
+    <ApplicationIcon>Docs/logo.ico</ApplicationIcon> 
     
     <Configurations>Debug;Release</Configurations>
-    
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    
-    <Company />
 
   </PropertyGroup>
 
+ <PropertyGroup>    
+    <!-- nuget Package -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>      
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/goswinr/AvalonLog</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/goswinr/AvalonLog</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageIcon>logo128.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageDescription>A fast and threadsave WPF text viewer for colored printing from F#. Based on AvalonEdit</PackageDescription>    
+    <PackageTags>WPF Text Console F# AvalonEdit</PackageTags>    
+  </PropertyGroup>
 
-  <ItemGroup>
-    <!-- <PackageReference Update="FSharp.Core" Version="5.0.1" />  don't do this for libraries, only exe-->
-    <!--<PackageReference Include="AvalonEdit" Version="6.1.1" />-->
+
+  <ItemGroup> 
+    <PackageReference Include="AvalonEditB" Version="1.0.0" />
+    <!-- <Reference Include="AvalonEditB" HintPath="../AvalonEditB/AvalonEditB/bin/Release/net472/AvalonEditB.dll" /> -->
   </ItemGroup>
 
-  <ItemGroup>            
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="AvalonEditB">
-      <!-- build from dev branch of https://github.com/goswinr/AvalonEditB -->
-      <HintPath>../AvalonEditB/AvalonEditB/bin/Release/net472/AvalonEditB.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 
   <ItemGroup>
-    <Compile Include="Src/Util.fs" />
-    <Compile Include="Src/Global.fs" />
+    <None Include="Doc/logo128.png" Pack="true" PackagePath="\" /> <!--PackagePath = "\" makes the fike availabe to nuget pack tool-->
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    
+    <Compile Include="Src/Sync.fs" />
+    <Compile Include="Src/Util.fs" />    
     <Compile Include="Src/TextColor.fs" />
     <Compile Include="Src/SelectedTextHighlighter.fs" />
     <Compile Include="Src/AvalonLog.fs" />

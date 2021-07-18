@@ -43,7 +43,7 @@ type RangeColor =
 
 
 /// To implement the actual colors from colored printing
-type ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>) =  
+type ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>,defaultBrush) =  
     inherit Rendering.DocumentColorizingTransformer()
     
     let mutable selStart = -9
@@ -71,7 +71,7 @@ type ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>) =
             if selStart = selEnd  || selStart > enLn || selEnd < stLn then// no selection in general or on this line                 
                 for c in cs do 
                     if c.brush = null && any then //changing the basefore ground is only needed if any other color already exists on this line                        
-                        base.ChangeLinePart(c.start, c.ende, fun element -> element.TextRunProperties.SetForegroundBrush(Global.defaultBrush))
+                        base.ChangeLinePart(c.start, c.ende, fun element -> element.TextRunProperties.SetForegroundBrush(defaultBrush))
                     else                            
                         if notNull c.brush then // might still happen on first line
                             any <-true
@@ -80,7 +80,7 @@ type ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>) =
             /// exclude selection from coloring: 
             else                
                 for c in cs do
-                    let br = c.brush |> ifNull Global.defaultBrush // null check
+                    let br = if isNull c.brush then defaultBrush else c.brush
                     let st = c.start
                     let en = c.ende
                     // now consider block or rectangle selection:

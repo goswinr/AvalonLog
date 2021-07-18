@@ -10,7 +10,6 @@ open AvalonLog.Util
 type SelectedTextHighlighter (lg:TextEditor) = 
     inherit Rendering.DocumentColorizingTransformer()    
     //  based on https://stackoverflow.com/questions/9223674/highlight-all-occurrences-of-selected-word-in-avalonedit  
-
     
     let mutable highTxt = null
     let mutable curSelStart = -1
@@ -28,7 +27,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
     member _.OnHighlightChanged = highlightChangedEv.Publish   
 
     /// The color used for highlighting other occurances
-    member val ColorHighlight = Brushes.Blue |> Brush.brighter 210  |> Brush.freeze  
+    member val ColorHighlight = Brushes.Blue |> Brush.brighter 210  |> Brush.freeze  with get,set
     
     /// This gets called for every visible line on any view change
     override this.ColorizeLine(line:Document.DocumentLine) = 
@@ -43,8 +42,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
                 if curSelStart <> st  then // skip the actual current selection
                     base.ChangeLinePart( st,en, fun el -> el.TextRunProperties.SetBackgroundBrush(this.ColorHighlight))
                 let start = index + highTxt.Length // search for next occurrence // TODO or just +1 ???????
-                index <- text.IndexOf(highTxt, start, StringComparison.Ordinal)
-        
+                index <- text.IndexOf(highTxt, start, StringComparison.Ordinal)        
  
         
     member _.SelectionChangedDelegate (a:EventArgs) =        
@@ -75,7 +73,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
                     else
                         index <- tx.IndexOf(selTxt, st, StringComparison.Ordinal)
                                    
-                do! Async.SwitchToContext Sync.context
+                do! Async.SwitchToContext SyncAvalonLog.context
                 highlightChangedEv.Trigger(selTxt, k)    // to update status bar or similar UI
                 }   |> Async.Start
     
