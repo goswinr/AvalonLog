@@ -10,6 +10,7 @@ open System.Windows.Media // for color brushes
 open System.Text
 open System.Diagnostics
 open System.Windows.Controls
+open AvalonEditB.Document
 
 
 /// A TextWriter that writes using a function. 
@@ -26,6 +27,7 @@ type LogTextWriter(write,writeLine) =
 /// the property this.AvalonEdit holds the UI control.
 /// Dont append or change the AvalonEdit.Text property directly. This will mess up the coloring
 /// only use the printfn functions of this class
+/// Use the hidden member AvalonEdit if you need to access the underlying TextEditor class from AvalonEdit
 type AvalonLog () =    
     inherit ContentControl()  // the most simple and generic type of UIelement container, like a <div> in html  
     
@@ -181,6 +183,15 @@ type AvalonLog () =
     member  _.ShowLineNumbers  with get() = log.ShowLineNumbers             and set v = log.ShowLineNumbers <- v     
     member  _.EnableHyperlinks with get() = log.Options.EnableHyperlinks    and set v = log.Options.EnableHyperlinks  <- v
 
+    /// Get all text in this AvalonLog
+    member _.Text() = log.Text
+    
+    /// Get all text in Segment AvalonLog
+    member _.Text(seg:ISegment) = log.Document.GetText(seg)
+
+    /// Get the current Selection
+    member _.Selection = log.TextArea.Selection
+
     /// Use true to enable Line Wrap.
     /// setting false will enable Horizontal ScrollBar Visibility 
     /// setting true will disable Horizontal ScrollBar Visibility 
@@ -195,7 +206,7 @@ type AvalonLog () =
                 log.HorizontalScrollBarVisibility <- ScrollBarVisibility.Auto 
         
     //-----------------------------------------------------------    
-    //----------------------members:------------------------------------------    
+    //----------------------AvalonLog specific members:---------- 
     //------------------------------------------------------------    
     
     /// The maximum amount of charcters this AvaloLog can display.
@@ -207,12 +218,14 @@ type AvalonLog () =
         and  set v  = maxCharsInLog <- v
 
 
-    /// To access the underlying  AvalonEdit TextEditor
+    /// To access the underlying  AvalonEdit TextEditor class
     /// Don't append , clear or modify the Text property directly! 
     /// This will mess up the coloring.
-    /// Only use the printfn familly of functions to add text to  AvalonLog
+    /// Only use the printfn familly of functions to add text to AvalonLog
     /// Use this member only for styling changes
-    member _.AvalonEditInternal = log //  dangerous to expose this, because text can be manipulated directly !
+    /// use #nowarn "44" to disable the obsolete warning
+    [<Obsolete("It is not actually obsolete, but normally not used, so hidden from editor tools. In F# use #nowarn \"44\" to disable the obsolete warning")>]
+    member _.AvalonEdit = log 
 
     /// The Highligther for selected text
     member _.SelectedTextHighLighter = hiLi
@@ -281,24 +294,24 @@ type AvalonLog () =
     //-------------------------------------- 
     
     /// Print string using default color (Black)
-    member _.Append s = 
+    member _.Append (s) = 
         printOrBuffer (s, false, defaultBrush )   
 
     /// Print string using red, green and blue color values (each between 0 and 255). 
     /// (without adding a new line at the end).
-    member _.AppendWithColor red green blue s = 
+    member _.AppendWithColor (red, green, blue, s) = 
         setCustomBrush (red,green,blue)
         printOrBuffer (s, false, customBrush )    
     
     /// Print string using the Brush provided.
     /// (without adding a new line at the end).
-    member _.AppendWithBrush (br:SolidColorBrush) s = 
+    member _.AppendWithBrush (br:SolidColorBrush, s) = 
         customBrush <- br
         printOrBuffer (s, false, customBrush )       
 
     /// Print string using the last Brush or color provided.
     /// (without adding a new line at the end
-    member _.AppendWithLastColor s =  
+    member _.AppendWithLastColor (s) =  
         printOrBuffer (s, false, customBrush)
 
     //--------------------------------------    
@@ -307,24 +320,24 @@ type AvalonLog () =
     
     /// Print string using default color (Black)
     /// Adds a new line at the end
-    member _.AppendLine s = 
+    member _.AppendLine (s) = 
         printOrBuffer (s, true, defaultBrush )
 
     /// Print string using red, green and blue color values (each between 0 and 255). 
     /// Adds a new line at the end
-    member _.AppendLineWithColor red green blue s =
+    member _.AppendLineWithColor (red, green, blue, s) =
         setCustomBrush (red,green,blue)
         printOrBuffer (s, true, customBrush ) 
        
     /// Print string using the Brush provided.    
     /// Adds a new line at the end.
-    member _.AppendLineWithBrush (br:SolidColorBrush) s =
+    member _.AppendLineWithBrush (br:SolidColorBrush, s) =
         customBrush <- br
         printOrBuffer (s, true, customBrush)        
      
     /// Print string using the last Brush or color provided.
     /// Adds a new line at the end
-    member _.AppendLineWithLastColor s =  
+    member _.AppendLineWithLastColor (s) =  
         printOrBuffer (s, true, customBrush)
    
    //--------------------------------------

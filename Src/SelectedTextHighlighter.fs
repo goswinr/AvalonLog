@@ -45,15 +45,18 @@ type SelectedTextHighlighter (lg:TextEditor) =
                 index <- text.IndexOf(highTxt, start, StringComparison.Ordinal)        
  
         
-    member _.SelectionChangedDelegate (a:EventArgs) =        
-        let selTxt = lg.SelectedText    // for block selection this will contain everything from first segment till last segment, even the unselected. 
-        let doHighlightNow = 
-            selTxt.Trim().Length >= 2 // minimum 2 non whitespace characters?
-            && not <| selTxt.Contains("\n")  //no line beaks          
-            && not <| selTxt.Contains("\r")  //no line beaks
-            
-        if doHighlightNow then 
+    member _.SelectionChangedDelegate (a:EventArgs) = 
+        
+        let selTxt =
+            let sel = lg.TextArea.Selection
+            if sel.Length < 2 then ""                                     //only highlight if 2 or more chracters selceted
+            elif sel.StartPosition.Line <> sel.EndPosition.Line then ""    //only highlight if one-line-selection 
+            else
+                let selt = lg.SelectedText //sel.GetText() // for block selection this will contain everything from first segment till last segment, even the unselected. 
+                if  selt.Trim().Length < 2 then ""// minimum 2 non whitespace characters? 
+                else selt
 
+        if selTxt <>"" then 
             // for current text view:
             highTxt <- selTxt
             curSelStart <- lg.SelectionStart
