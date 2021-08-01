@@ -1,4 +1,4 @@
-﻿# AvalonLog
+# AvalonLog
 
 ![logo](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Doc/logo400.png)
 

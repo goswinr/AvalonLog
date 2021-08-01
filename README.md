@@ -1,5 +1,8 @@
 # AvalonLog
-[![NuGet](https://img.shields.io/nuget/v/AvalonLog.svg)](https://nuget.org/packages/AvalonLog) 
+
+
+[![AvalonLog on nuget.org](https://img.shields.io/nuget/v/AvalonLog.svg)](https://www.nuget.org/packages/AvalonLog/)
+[![AvalonLog on fuget.org](https://www.fuget.org/packages/AvalonLog/badge.svg)](https://www.fuget.org/packages/AvalonLog)
 
 ![logo](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Doc/logo400.png)
 
