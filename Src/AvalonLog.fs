@@ -1,4 +1,4 @@
-﻿namespace AvalonLog
+namespace AvalonLog
 
 open AvalonLog.Util
 open AvalonLog.Brush
@@ -233,28 +233,30 @@ type AvalonLog () =
     /// Clear all Text. (threadsafe)
     /// The Color of the last print will still be remebered
     /// e.g. for log.AppendWithLastColor(..)
-    member _.Clear() :unit = 
-        dontPrintJustBuffer<- true
-        stopWatch.Restart()
-        buffer.Clear() |> ignoreObj
-        docLength <- 0
-        prevMsgBrush <- null
-        stillLessThanMaxChars <- true
-        printCallsCounter := 0L    
-        offsetColors.Clear()
-        offsetColors.Add {off = -1 ; brush=null} //TODO use -1 instead? // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) .. 
-        async{
-            do! Async.SwitchToContext SyncAvalonLog.context        
-            lock buffer (fun () ->                             
-                log.SelectionLength <- 0
-                log.SelectionStart <- 0
-                log.Clear()
-                defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze)   // TODO or remeber custstom brush ?
-                dontPrintJustBuffer <- false // this is important to release pending prints stuck in while loop in printOrBuffer()
-                //log.TextArea.TextView.linesCollapsedVisualPosOffThrowCount <- 0 // custom property in Avalonedit to avoid throwing too many exceptions. set 0 so exceptions appear again // TODO Use custom build from AvalonLog            
+    member _.Clear() :unit =         
+        lock buffer (fun () ->
+            dontPrintJustBuffer <- true
+            buffer.Clear() |>  ignoreObj
+            docLength <- 0
+            prevMsgBrush <- null
+            stillLessThanMaxChars <- true
+            printCallsCounter := 0L    
+            offsetColors.Clear()
+            offsetColors.Add {off = -1 ; brush=null} //TODO use -1 instead? // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) .. 
             )
-        }
-        |> Async.StartImmediate  
+        
+        // log.Dispatcher.Invoke needed. 
+        // If this would be done via async{ and do! Async.SwitchToContext a subsequent call via Dispatcher.Invoke ( like print to log) would still come before. 
+        // It starts faster than async with SwitchToContext
+        log.Dispatcher.Invoke( fun () ->  
+            log.Clear()
+            //log.SelectionLength <- 0
+            //log.SelectionStart <- 0            
+            defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze)   // TODO or remeber custstom brush ?
+            log.TextArea.TextView.linesCollapsedVisualPosOffThrowCount <- 0 // custom property in AvalonEditB to avoid throwing too many exceptions. set 0 so exceptions appear again
+            stopWatch.Restart() // works async too
+            dontPrintJustBuffer <- false // this is important to release pending prints stuck in while loop in printOrBuffer()            
+            )
 
 
     /// Returns a threadsafe Textwriter that prints to AvalonLog in Color  
