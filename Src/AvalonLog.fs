@@ -151,24 +151,40 @@ type AvalonLog () =
                     if !printCallsCounter = k  then //it is the last call for 500 ms
                         log.Dispatcher.Invoke(printToLog)                 
                     } |> Async.StartImmediate 
-
-            else
+            
+            // normal case:
+            else                
                 // check the two criteria for actually printing
-                // print case 1: sine the last printing more than 100ms have elapsed
-                // print case 2, wait 0.1 seconds and print if nothing els has been added to the buffer during the last 100 ms
-                if stopWatch.ElapsedMilliseconds > 100L  then // print case 1: only add to document every 100ms  
-                    //log.Dispatcher.Invoke( printToLog) // TODO a bit faster probably and less verbose than async here but would this propagate exceptions too ?
-                    async { 
-                        do! Async.SwitchToContext SyncAvalonLog.context
-                        printToLog() // runs with a lock too
-                        } |> Async.StartImmediate                 
+                // PRINT CASE 1: since the last printing call more than 100 ms have elapsed. this case is used if a lot of print calls arrive at the log for a more than 100 ms.
+                // PRINT CASE 2, wait 70 ms and print if nothing else has been added to the buffer during the last 70 ms
+
+                if stopWatch.ElapsedMilliseconds > 100L  then // PRINT CASE 1: only add to document every 100ms  
+                    // printToLog() will also reset stopwatch.
+                    log.Dispatcher.Invoke( printToLog) // TODO a bit faster probably and less verbose than async here but would this propagate exceptions too ?
+                    
+                    //previous version:
+                    //async { 
+                    //    do! Async.SwitchToContext SyncAvalonLog.context // slower to start but this would  would this propagate exceptions too ?
+                    //    printToLog() // runs with a lock too
+                    //    } |> Async.StartImmediate   
+                    
                 else
-                    async {                        
-                        let k = Interlocked.Increment printCallsCounter
-                        do! Async.Sleep 100
-                        if !printCallsCounter = k  then //print case 2, it is the last call for 100 ms
-                            log.Dispatcher.Invoke(printToLog)                 
-                        } |> Async.StartImmediate 
+                    /// do timing as low level as possible: see Async.Sleep in  https://github.com/dotnet/fsharp/blob/main/src/fsharp/FSharp.Core/async.fs#L1587
+                    let mutable timer :option<Timer> = None
+                    let k = Interlocked.Increment printCallsCounter
+                    let action =  TimerCallback(fun _ -> 
+                        if !printCallsCounter = k  then  log.Dispatcher.Invoke(printToLog) //PRINT CASE 2, it is the last call for 70 ms, there has been no other Increment to printCallsCounter
+                        if timer.IsSome then timer.Value.Dispose() // dispose inside callback, like in Async.Sleep
+                        )                         
+                    timer <- Some (new Threading.Timer(action, null, dueTime = 70 , period = -1))
+                    
+                    // previous version:
+                    //async {                        
+                    //    let k = Interlocked.Increment printCallsCounter
+                    //    do! Async.Sleep 100
+                    //    if !printCallsCounter = k  then //PRINT CASE 2, it is the last call for 100 ms
+                    //        log.Dispatcher.Invoke(printToLog)                 
+                    //    } |> Async.StartImmediate 
                     
      //-----------------------------------------------------------    
      //----------------------exposed AvalonEdit members:------------------------------------------    
