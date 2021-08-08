@@ -1,4 +1,4 @@
-namespace AvalonLog
+﻿namespace AvalonLog
 
 open AvalonLog.Util
 open AvalonLog.Brush
@@ -33,12 +33,12 @@ type AvalonLog () =
     
     /// Stores all the locations where a new color starts. 
     /// Will be searched via binary serach in colorizing transformers
-    let offsetColors = ResizeArray<NewColor>( [ {off = -1 ; brush=null} ] )    // null is console out // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..     
+    let offsetColors = ResizeArray<NewColor>( [ {off = -1 ; brush=null} ] )    // null is console out // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..    
     
 
     /// Same as default forground in underlaying AvalonEdit. 
     /// Will be set on AvalonEdit foreground brush changes
-    let mutable defaultBrush    = Brushes.Black     |> freeze // should be same as default forground. Will be set on foreground changes
+    let mutable defaultBrush    = Brushes.Black     |> freeze // should be same as default forground. Will be set on foreground color changes
     
     /// used for printing with rgb values
     let mutable customBrush     = Brushes.Black     |> freeze   // will be changed anyway on first call
@@ -53,7 +53,7 @@ type AvalonLog () =
     
     let log =  new TextEditor()    
     let hiLi = new SelectedTextHighlighter(log)
-    let colo = new ColorizingTransformer(log,offsetColors,defaultBrush)
+    let colo = new ColorizingTransformer(log, offsetColors, defaultBrush)
 
     do    
         base.Content <- log  //nest Avlonedit inside a simple ContentControl to hide most of its functionality
@@ -87,6 +87,8 @@ type AvalonLog () =
     let mutable stillLessThanMaxChars = true
     let mutable dontPrintJustBuffer = false // for use in this.Clear() to make sur a print after a clear does not get swallowed        
     
+    
+
     //-----------------------------------------------------------------------------------
     // The below functions are trying to work around double UI update in printfn for better UI performance, 
     // and the poor performance of log.ScrollToEnd().
@@ -98,15 +100,16 @@ type AvalonLog () =
         let txt = buffer.ToString()
         buffer.Clear()  |> ignoreObj 
         txt
-
+    
+    /// must be called in sync
     let printToLog() =          
         let txt = lock buffer getBufferText //lock for safe access   
-        if txt.Length>0 then //might be empty from calls during dontPrintJustBuffer = true
+        if txt.Length > 0 then //might be empty from calls during dontPrintJustBuffer = true
             log.AppendText(txt)     // TODO is it possibel that avalon edit skips adding some escape ANSI characters to document?? then docLength could be out of sync !! TODO
             log.ScrollToEnd()
             if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712  
             stopWatch.Restart()
-
+    
     let newLine = Environment.NewLine
 
     /// adds string on UI thread  every 150ms then scrolls to end after 300ms. 
@@ -128,7 +131,7 @@ type AvalonLog () =
                 else
                     buffer.Append(txt)  |> ignoreObj
                     docLength <- docLength + txt.Length
-            )
+                )
 
             // check if total text in log  is already to big , print it and then stop printing
             if docLength > maxCharsInLog then // neded when log gets piled up with exception messages form Avalonedit rendering pipeline.
@@ -141,14 +144,14 @@ type AvalonLog () =
                     log.ScrollToEnd() // call twice because of https://github.com/icsharpcode/AvalonEdit/issues/226
                     } |> Async.StartImmediate  
             
-
-            elif dontPrintJustBuffer then // wait really long before printing
+            // check if we are in the process of clearing the view
+            elif dontPrintJustBuffer then // wait really long before printing                
                 async {                        
                     let k = Interlocked.Increment printCallsCounter
                     do! Async.Sleep 100
                     while dontPrintJustBuffer do // wait till dontPrintJustBuffer is set true from end of this.Clear() call
                         do! Async.Sleep 100
-                    if !printCallsCounter = k  then //it is the last call for 500 ms
+                    if !printCallsCounter = k  then //it is the last call for 100 ms
                         log.Dispatcher.Invoke(printToLog)                 
                     } |> Async.StartImmediate 
             
@@ -244,8 +247,8 @@ type AvalonLog () =
     member _.AvalonEdit = log 
 
     /// The Highligther for selected text
-    member _.SelectedTextHighLighter = hiLi
-    
+    member _.SelectedTextHighLighter = hiLi    
+
     /// Clear all Text. (threadsafe)
     /// The Color of the last print will still be remebered
     /// e.g. for log.AppendWithLastColor(..)
