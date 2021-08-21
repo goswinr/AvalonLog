@@ -17,17 +17,17 @@ open AvalonEditB.Document
 /// To set Console.Out to a text writer get one via AvalonLog.GetTextWriter(red,green,blue)
 type LogTextWriter(write,writeLine) =
     inherit TextWriter()
-    override _.Encoding =  Text.Encoding.Default
+    override _.Encoding = Text.Encoding.Default // ( UTF-16 )
     override _.Write     (s:string)  = write (s)
-    override _.WriteLine (s:string)  = writeLine (s)    // actually never used in F# see  https://github.com/dotnet/fsharp/issues/3712   
+    override _.WriteLine (s:string)  = writeLine (s)    // actually never used in F# printfn , see  https://github.com/dotnet/fsharp/issues/3712   
     override _.WriteLine ()          = writeLine ("")    
 
 
 /// A ReadOnly text AvalonEdit Editor that provides colored appending via printfn like functions
 /// the property this.AvalonEdit holds the UI control.
 /// Dont append or change the AvalonEdit.Text property directly. This will mess up the coloring
-/// only use the printfn functions of this class
-/// Use the hidden member AvalonEdit if you need to access the underlying TextEditor class from AvalonEdit
+/// only use the printfn functions of this class.
+/// Use the hidden member AvalonEdit if you need to access the underlying TextEditor class from AvalonEdit.
 type AvalonLog () =    
     inherit ContentControl()  // the most simple and generic type of UIelement container, like a <div> in html  
     
@@ -37,10 +37,10 @@ type AvalonLog () =
     
 
     /// Same as default forground in underlaying AvalonEdit. 
-    /// Will be set on AvalonEdit foreground brush changes
+    /// Will be chnaged if AvalonEdit foreground brush changes
     let mutable defaultBrush    = Brushes.Black     |> freeze // should be same as default forground. Will be set on foreground color changes
     
-    /// used for printing with rgb values
+    /// Used for printing with custom rgb values
     let mutable customBrush     = Brushes.Black     |> freeze   // will be changed anyway on first call
     
     let setCustomBrush(red,green,blue) = 
@@ -68,10 +68,13 @@ type AvalonLog () =
         log.TextArea.SelectionBorder <- null         
         log.TextArea.TextView.LinkTextForegroundBrush <- Brushes.Blue |> Brush.freeze //Hyperlinks color         
         
-        log.TextArea.SelectionChanged.Add colo.SelectionChangedDelegate
-        log.TextArea.TextView.LineTransformers.Add(colo)
-        log.TextArea.SelectionChanged.Add hiLi.SelectionChangedDelegate
+        
+        log.TextArea.TextView.LineTransformers.Add(colo) // to actually draw colored text
+        log.TextArea.SelectionChanged.Add colo.SelectionChangedDelegate // to exclude selcted text from beeing colored
+
+        // to highlight all instances of the selected word
         log.TextArea.TextView.LineTransformers.Add(hiLi)
+        log.TextArea.SelectionChanged.Add hiLi.SelectionChangedDelegate
 
         Search.SearchPanel.Install(log) |> ignoreObj //TODO disable search and replace if using custom build?
         
@@ -112,7 +115,7 @@ type AvalonLog () =
     
     let newLine = Environment.NewLine
 
-    /// adds string on UI thread  every 150ms then scrolls to end after 300ms. 
+    /// Adds string on UI thread  every 150ms then scrolls to end after 300ms. 
     /// Optionally adds new line at end. 
     /// Sets line color on LineColors dictionay for DocumentColorizingTransformer. 
     /// printOrBuffer (txt:string, addNewLine:bool, typ:SolidColorBrush)
@@ -198,7 +201,7 @@ type AvalonLog () =
     member  _.HorizontalScrollBarVisibility with get() = log.HorizontalScrollBarVisibility   and set v = log.HorizontalScrollBarVisibility <- v
     member  _.FontFamily       with get() = log.FontFamily                  and set v = log.FontFamily <- v
     member  _.FontSize         with get() = log.FontSize                    and set v = log.FontSize  <- v
-    member  _.Encoding         with get() = log.Encoding                    and set v = log.Encoding <- v   
+    //member  _.Encoding         with get() = log.Encoding                    and set v = log.Encoding <- v   
     member  _.ShowLineNumbers  with get() = log.ShowLineNumbers             and set v = log.ShowLineNumbers <- v     
     member  _.EnableHyperlinks with get() = log.Options.EnableHyperlinks    and set v = log.Options.EnableHyperlinks  <- v
 
@@ -281,7 +284,7 @@ type AvalonLog () =
     /// Returns a threadsafe Textwriter that prints to AvalonLog in Color  
     /// for use as use System.Console.SetOut(textWriter) 
     /// or System.Console.SetError(textWriter)
-    member _.GetTextWriter(red,green,blue) =
+    member _.GetTextWriter(red, green, blue) =
         let br = Brush.ofRGB red green blue
         new LogTextWriter(
                 (fun s -> printOrBuffer (s, false, br)), 
@@ -298,16 +301,28 @@ type AvalonLog () =
                 (fun s -> printOrBuffer (s, true , fbr)) 
                 )
 
-    /// Returns a threadsafe Textwriter that prints to AvalonLog in Color
-    /// and also calles another function with all strings it receives
-    /// for use as use System.Console.SetOut(textWriter) 
-    /// or System.Console.SetError(textWriter)
-    member _.GetTextWriterEx(br:SolidColorBrush, alsoDoWithString:string->unit) =        
+    /// Returns a threadsafe Textwriter that only prints to AvalonLog 
+    /// if the predicate returns true for the string sent to the text writer.
+    /// The provide Color will be used.
+    member _.GetTextWriterIf(predicate:string->bool, br:SolidColorBrush) =        
         let fbr = br|> freeze
         new LogTextWriter(
-                (fun s -> printOrBuffer (s, false, fbr) ; alsoDoWithString s                       ), 
-                (fun s -> printOrBuffer (s, true , fbr) ; alsoDoWithString (s+Environment.NewLine) ) 
+                (fun s -> if predicate s then printOrBuffer (s, false, fbr)), 
+                (fun s -> if predicate s then printOrBuffer (s, true , fbr)) 
                 )
+
+    /// Returns a threadsafe Textwriter that only prints to AvalonLog 
+    /// if the predicate returns true for the string sent to the text writer.
+    /// The predicate can also be used for other side effects before printing.
+    /// The provided red, green and blue Color values will be used will be used. 
+    /// Intgers will be clamped to be between 0 and 255
+    member _.GetTextWriterIf(predicate:string->bool, red, green, blue) =        
+        let br = Brush.ofRGB red green blue
+        new LogTextWriter(
+                (fun s -> if predicate s then printOrBuffer (s, false, br)), 
+                (fun s -> if predicate s then printOrBuffer (s, true , br)) 
+                )
+
 
 
     //--------------------------------------    

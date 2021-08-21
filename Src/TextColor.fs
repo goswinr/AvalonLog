@@ -8,8 +8,11 @@ open System.Windows.Media // for color brushes
 
 /// Describes the position in text where a new color starts
 [<Struct>]
-type internal NewColor = 
-    {off: int; brush: SolidColorBrush}
+type internal NewColor =  
+    {
+    off   : int
+    brush : SolidColorBrush // brush must be frozen to be used async   
+    }
     
     /// Does binary search to find an offset that is equal or smaller than currOff
     static member findCurrentInList (cs:ResizeArray<NewColor>) currOff =         
@@ -27,7 +30,11 @@ type internal NewColor =
 /// Describes the the start and end position of a color with one line
 [<Struct>]
 type internal RangeColor = 
-    {start: int; ende:int; brush: SolidColorBrush} // brush must be frozen to use async   
+    {
+    start :int
+    ende  :int
+    brush :SolidColorBrush // brush must be frozen to be used async   
+    } 
 
     /// Finds all the offset that apply to this line  which is defined by the range of  tOff to enOff 
     /// even if the ResizeArray<NewColor> does not conrtain any offest between stOff and  enOff 
@@ -56,7 +63,7 @@ type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<New
             selEnd   <- -9
         else
             selStart <- ed.SelectionStart
-            selEnd   <- selStart + ed.SelectionLength // this last selcetion in case of block selection too ! correct
+            selEnd   <- selStart + ed.SelectionLength // this is the last selection in case of block selection too ! correct
         
 
     /// This gets called for every visible line on any view change
