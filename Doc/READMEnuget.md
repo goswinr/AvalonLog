@@ -42,7 +42,7 @@ this will produce
 
 ### Documentation
 
-See extracted API at <a href="https://www.fuget.org/packages/AvalonLog/0.3.0/lib/net472/AvalonLog.dll/AvalonLog" target="_blank">fuget.org</a>
+See extracted API at [fuget.org](https://www.fuget.org/packages/AvalonLog/0.3.0/lib/net472/AvalonLog.dll/AvalonLog)
  
 ### Licence
 
