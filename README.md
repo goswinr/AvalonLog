@@ -10,9 +10,10 @@
 
 ### Usage
 ```fsharp
-// #r "PresentationCore"
-// #r "PresentationFramework"
-// #r "WindowsBase"
+#r "PresentationCore"
+#r "PresentationFramework"
+#r "WindowsBase"
+
 #r "nuget: AvalonLog"
 
 open System.Windows
