@@ -35,14 +35,14 @@
  <PropertyGroup>  
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>      
     <IncludeSymbols>true</IncludeSymbols>
-    <!--<SymbolPackageFormat>snupkg</SymbolPackageFormat>-->  <!-- using  snupkg the readme does not pack https://github.com/NuGet/Home/issues/10791 -->    
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>  <!-- using  snupkg the readme does not pack https://github.com/NuGet/Home/issues/10791 -->    
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>    
     <PackageProjectUrl>https://github.com/goswinr/AvalonLog</PackageProjectUrl>
     <RepositoryUrl>https://github.com/goswinr/AvalonLog</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageIcon>logo128.png</PackageIcon>
-    <PackageReadmeFile>READMEnuget.md</PackageReadmeFile>
+    <!-- <PackageReadmeFile>READMEnuget.md</PackageReadmeFile> -->
     <PackageDescription>A fast and threadsave WPF text viewer for colored text. Incudung F# printf formating . Based on AvalonEdit</PackageDescription>    
     <PackageTags>WPF Text Console F# AvalonEdit</PackageTags>    
   </PropertyGroup>
