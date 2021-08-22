@@ -2,7 +2,7 @@
 
 /// Shadows the ignore function to only accept structs
 /// This is to prevent accidetially ignoring partially aplied functions that would return struct
-module Util =
+module internal Util =
     
     /// Shadows the original 'ignore' function
     /// This is to prevent accidetially ignoring partially applied functions 
@@ -19,7 +19,7 @@ module Util =
     
  
 /// Utility functions for System.Windows.Media.SolidColorBrush       
-module Brush = 
+module internal Brush = 
     open System
     open System.Windows.Media // for SolidColorBrush
     

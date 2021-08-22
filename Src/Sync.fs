@@ -7,7 +7,7 @@ open System.Windows.Threading
 
 /// Threading Utils to setup and access the SynchronizationContext 
 /// and evaluate any function on UI thread (SyncAvalonLog.doSync(f))
-type SyncAvalonLog private () =   
+type internal SyncAvalonLog private () =   
 
     static let mutable errorFileWrittenOnce = false // to not create more than one error file on Desktop per app run
 

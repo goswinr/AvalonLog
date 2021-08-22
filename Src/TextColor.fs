@@ -8,7 +8,7 @@ open System.Windows.Media // for color brushes
 
 /// Describes the position in text where a new color starts
 [<Struct>]
-type NewColor = 
+type internal NewColor = 
     {off: int; brush: SolidColorBrush}
     
     /// Does binary search to find an offset that is equal or smaller than currOff
@@ -26,7 +26,7 @@ type NewColor =
 
 /// Describes the the start and end position of a color with one line
 [<Struct>]
-type RangeColor = 
+type internal RangeColor = 
     {start: int; ende:int; brush: SolidColorBrush} // brush must be frozen to use async   
 
     /// Finds all the offset that apply to this line  which is defined by the range of  tOff to enOff 
@@ -43,7 +43,7 @@ type RangeColor =
 
 
 /// To implement the actual colors from colored printing
-type ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>,defaultBrush) =  
+type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>,defaultBrush) =  
     inherit Rendering.DocumentColorizingTransformer()
     
     let mutable selStart = -9

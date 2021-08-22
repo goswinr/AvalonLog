@@ -17,10 +17,10 @@
     <Product>AvalonLog</Product>
     <PackageId>AvalonLog</PackageId>  
 
-    <Version>0.1.0.0</Version>
-    <AssemblyVersion>0.1.0.0</AssemblyVersion>
-    <FileVersion>0.1.0.0</FileVersion>
-    <PackageReleaseNotes>First release</PackageReleaseNotes>
+    <Version>0.2.0.0</Version>
+    <AssemblyVersion>0.2.0.0</AssemblyVersion>
+    <FileVersion>0.2.0.0</FileVersion>
+    <PackageReleaseNotes>Simplify pubic API by hiding internal types</PackageReleaseNotes>
     
     <Authors>GoswinR</Authors>
     <Copyright>Goswin Rothenthal 2021</Copyright>
@@ -29,20 +29,19 @@
     <ApplicationIcon>Docs/logo.ico</ApplicationIcon> 
     
     <Configurations>Debug;Release</Configurations>
-
   </PropertyGroup>
 
  <PropertyGroup>  
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>      
     <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>  <!-- using  snupkg the readme does not pack https://github.com/NuGet/Home/issues/10791 -->    
+    <!--<SymbolPackageFormat>snupkg</SymbolPackageFormat> -->  <!-- using snupkg the readme does not pack https://github.com/NuGet/Home/issues/10791 -->    
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>    
     <PackageProjectUrl>https://github.com/goswinr/AvalonLog</PackageProjectUrl>
     <RepositoryUrl>https://github.com/goswinr/AvalonLog</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageIcon>logo128.png</PackageIcon>
-    <!-- <PackageReadmeFile>READMEnuget.md</PackageReadmeFile> -->
+    <PackageReadmeFile>READMEnuget.md</PackageReadmeFile>
     <PackageDescription>A fast and threadsave WPF text viewer for colored text. Including F# printf formating . Based on AvalonEdit</PackageDescription>    
     <PackageTags>WPF Text Console F# AvalonEdit</PackageTags>    
   </PropertyGroup>
@@ -57,7 +56,8 @@
 
   <ItemGroup>
     <None Include="README.md" />   
-    <None Include="Doc/READMEnuget.md"  Pack="true" PackagePath="" />
+    <None Include="Doc/READMEnuget.md" Pack="true" PackagePath="" />   
+    <None Include="Doc\avalog.fsx" />
     <None Include="Doc/logo128.png" Pack="true" PackagePath="" /> <!--PackagePath = "" makes the file availabe to nuget pack tool-->
     
     <Compile Include="Src/Sync.fs" />
