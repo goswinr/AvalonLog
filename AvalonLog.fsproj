@@ -25,7 +25,7 @@
     <Authors>GoswinR</Authors>
     <Copyright>Goswin Rothenthal 2021</Copyright>
 
-    <Description>A fast and threadsave WPF text viewer for colored text. Incudung F# printf formating. Based on AvalonEdit</Description>
+    <Description>A fast and threadsave WPF text viewer for colored text. Including F# printf formating. Based on AvalonEdit</Description>
     <ApplicationIcon>Docs/logo.ico</ApplicationIcon> 
     
     <Configurations>Debug;Release</Configurations>
@@ -43,7 +43,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageIcon>logo128.png</PackageIcon>
     <!-- <PackageReadmeFile>READMEnuget.md</PackageReadmeFile> -->
-    <PackageDescription>A fast and threadsave WPF text viewer for colored text. Incudung F# printf formating . Based on AvalonEdit</PackageDescription>    
+    <PackageDescription>A fast and threadsave WPF text viewer for colored text. Including F# printf formating . Based on AvalonEdit</PackageDescription>    
     <PackageTags>WPF Text Console F# AvalonEdit</PackageTags>    
   </PropertyGroup>
 
