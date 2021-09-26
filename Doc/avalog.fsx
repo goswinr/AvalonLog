@@ -20,7 +20,7 @@ red   "%s" "The answer is "
 green "%d" 42
 
 
-Application().Run(Window(Content=log))  // show WPF window 
+Application().Run(Window(Content=log))  // show WPF window
 
 
 
