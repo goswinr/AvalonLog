@@ -32,10 +32,10 @@ let blue  = log.printfnColor 0 0 255 // with newline
 let green = log.printfnColor 0 155 0 // with newline
 
 // print to log using F# printf formating
-red   "%s" "Hello, "
-blue  "%s" "World!"
-red   "%s" "The answer is "
-green "%d" 42
+red   "Hello, "
+blue  "World!"
+red   "The answer"
+green " is %d." (40 + 2)
 
 Application().Run(Window(Content=log))  // show WPF window 
 ```
@@ -43,9 +43,15 @@ this will produce
 
 ![WPF window](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Doc/HelloWorld.png)
 
+
+For C# there is  
+```csharp
+public void AppendWithBrush(SolidColorBrush br, string s)
+```
+and similar functions on the `AvalonLog` instance.
 ### Documentation
 
-See extracted API at <a href="https://www.fuget.org/packages/AvalonLog/0.3.0/lib/net472/AvalonLog.dll/AvalonLog" target="_blank">fuget.org</a> 
+See extracted API at <a href="https://www.fuget.org/packages/AvalonLog/0.3.1/lib/net472/AvalonLog.dll/AvalonLog" target="_blank">fuget.org</a> 
 
 ### Download
 
