@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop"> 
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net472;net50-windows</TargetFrameworks>  
-    <UseWPF>true</UseWPF>    
+    <TargetFrameworks>net472;net50-windows</TargetFrameworks>
+    <UseWPF>true</UseWPF>
     <LangVersion>preview</LangVersion>
-    
+
     <NeutralLanguage>en</NeutralLanguage>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>   <!--to only have the english resources-->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -13,41 +13,41 @@
     <RootNamespace>AvalonLog</RootNamespace>
     <AssemblyName>AvalonLog</AssemblyName>
     <AssemblyTitle>AvalonLog</AssemblyTitle>
-    <Title>AvalonLog</Title>  
+    <Title>AvalonLog</Title>
     <Product>AvalonLog</Product>
-    <PackageId>AvalonLog</PackageId>  
+    <PackageId>AvalonLog</PackageId>
 
-    <Version>0.3.0.0</Version>
-    <AssemblyVersion>0.3.0.0</AssemblyVersion>
-    <FileVersion>0.3.0.0</FileVersion>
-    <PackageReleaseNotes>Revise public API, expose Utility functions</PackageReleaseNotes>
-    
+    <Version>0.3.1</Version>
+    <AssemblyVersion>0.3.1</AssemblyVersion>
+    <FileVersion>0.3.1</FileVersion>
+    <PackageReleaseNotes>Update Xml Docstrings.</PackageReleaseNotes>
+
     <Authors>GoswinR</Authors>
     <Copyright>Goswin Rothenthal 2021</Copyright>
 
     <Description>A fast and threadsave WPF text viewer for colored text. Including F# printf formating. Based on AvalonEdit</Description>
-    <ApplicationIcon>Docs/logo.ico</ApplicationIcon> 
-    
+    <!-- <ApplicationIcon>Docs/logo.ico</ApplicationIcon> -->
+
     <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
- <PropertyGroup>  
+ <PropertyGroup>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>  <!-- using snupkg the readme does not pack https://github.com/NuGet/Home/issues/10791 -->    
+    <!--<SymbolPackageFormat>snupkg</SymbolPackageFormat>   using snupkg the readme does not pack https://github.com/NuGet/Home/issues/10791 -->
     <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>    
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/goswinr/AvalonLog</PackageProjectUrl>
     <RepositoryUrl>https://github.com/goswinr/AvalonLog</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageIcon>logo128.png</PackageIcon>
-    <!--<PackageReadmeFile>READMEnuget.md</PackageReadmeFile>--> <!-- using snupkg the readme does not pack https://github.com/NuGet/Home/issues/10791 -->  
-    <PackageDescription>A fast and threadsave WPF text viewer for colored text. Including F# printf formating . Based on AvalonEdit</PackageDescription>    
-    <PackageTags>WPF Text Console F# AvalonEdit</PackageTags>    
+    <PackageReadmeFile>READMEnuget.md</PackageReadmeFile> <!-- using snupkg the readme does not pack https://github.com/NuGet/Home/issues/10791 -->
+    <PackageDescription>A fast and threadsave WPF text viewer for colored text. Including F# printf formating . Based on AvalonEdit</PackageDescription>
+    <PackageTags>WPF Text Console F# AvalonEdit</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup> 
+  <ItemGroup>
     <PackageReference Include="AvalonEditB" Version="1.0.0" />
     <!-- <Reference Include="AvalonEditB" HintPath="../AvalonEditB/AvalonEditB/bin/Release/net472/AvalonEditB.dll" /> -->
 
@@ -56,14 +56,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="README.md" />   
-    <None Include="Doc/READMEnuget.md" Pack="true" PackagePath="" />   
+    <None Include="README.md" />
+    <None Include="Doc/READMEnuget.md" Pack="true" PackagePath="" />
     <None Include="Doc/avalog.fsx" />
     <None Include="Doc/logo128.png" Pack="true" PackagePath="" /> <!--PackagePath = "" makes the file availabe to nuget pack tool-->
-    
-    <Compile Include="Src/Sync.fs" />    
+
+    <Compile Include="Src/Sync.fs" />
     <Compile Include="Src/Brush.fs" />
-    <Compile Include="Src/Util.fs" />    
+    <Compile Include="Src/Util.fs" />
     <Compile Include="Src/TextColor.fs" />
     <Compile Include="Src/SelectedTextHighlighter.fs" />
     <Compile Include="Src/AvalonLog.fs" />
