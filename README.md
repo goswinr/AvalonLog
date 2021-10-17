@@ -51,7 +51,7 @@ public void AppendWithBrush(SolidColorBrush br, string s)
 and similar functions on the `AvalonLog` instance.
 ### Documentation
 
-See extracted API at <a href="https://www.fuget.org/packages/AvalonLog/0.3.1/lib/net472/AvalonLog.dll/AvalonLog" target="_blank">fuget.org</a> 
+See extracted API at <a href="https://www.fuget.org/packages/AvalonLog/0.4.0/lib/net472/AvalonLog.dll/AvalonLog" target="_blank">fuget.org</a> 
 
 ### Download
 
@@ -66,3 +66,12 @@ Just run `dotnet build`
 MIT
 
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
+
+### Changelog
+
+ `0.3.1` 
+- Update Xml Docstrings
+
+`0.4.0`
+- Update to AvalonEditB `1.2.0` 
+- Rename `GetTextWriterIf` to `GetConditionalTextWriter`

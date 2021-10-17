@@ -18,9 +18,53 @@ open AvalonEditB.Document
 type LogTextWriter(write,writeLine) = 
     inherit TextWriter()
     override _.Encoding = Text.Encoding.Default // ( UTF-16 )
-    override _.Write     (s:string)  = write (s)
-    override _.WriteLine (s:string)  = writeLine (s)    // actually never used in F# printfn , see  https://github.com/dotnet/fsharp/issues/3712
+    
+    override _.Write     (s:string)  = 
+        //if s.Contains "\u001b" then  write ("esc"+s) else write ("?"+s) //debugging for using  spectre ?? https://github.com/spectreconsole/spectre.console/discussions/573            
+        write (s) 
+    
+    override _.WriteLine (s:string)  = // actually never used in F# printfn, but maybe buy other toos using the console or error out , see  https://github.com/dotnet/fsharp/issues/3712
+        //if s.Contains "\u001b" then  writeLine ("eSc"+s) else writeLine ("?"+s) 
+        writeLine (s)    
+    
     override _.WriteLine ()          = writeLine ("")
+
+
+    (*
+       trying to enable Ansi Control sequences for https://github.com/spectreconsole/spectre.console
+
+       but doeant work yet ESC char seam to be swallowed by Console.SetOut to textWriter. see:
+
+       //https://stackoverflow.com/a/34078058/969070
+       //let stdout = Console.OpenStandardOutput()
+       //let con = new StreamWriter(stdout, Encoding.ASCII)      
+       
+       The .Net Console.WriteLine uses an internal __ConsoleStream that checks if the Console.Out is as file handle or a console handle. 
+       By default it uses a console handle and therefor writes to the console by calling WriteConsoleW. In the remarks you find:
+       
+       Although an application can use WriteConsole in ANSI mode to write ANSI characters, consoles do not support ANSI escape sequences. 
+       However, some functions provide equivalent functionality. For more information, see SetCursorPos, SetConsoleTextAttribute, and GetConsoleCursorInfo.
+       
+       To write the bytes directly to the console without WriteConsoleW interfering a simple filehandle/stream will do which is achieved by calling OpenStandardOutput. 
+       By wrapping that stream in a StreamWriter so we can set it again with Console.SetOut we are done. The byte sequences are send to the OutputStream and picked up by AnsiCon.
+  
+       let strWriter = l.AvalonLog.GetStreamWriter( LogColors.consoleOut) // Encoding.ASCII ??  
+       Console.SetOut(strWriter)
+/// A TextWriter that writes using a function.
+/// To set Console.Out to a text writer get one via AvalonLog.GetTextWriter(red,green,blue)
+type LogStreamWriter(ms:MemoryStream,write,writeLine) = 
+    inherit StreamWriter(ms)
+    override _.Encoding = Text.Encoding.Default // ( UTF-16 )
+    override _.Write (s:string) :  unit = 
+        if s.Contains "\u001b" then  write ("esc"+s) else write ("?"+s) //use specter ?? https://github.com/spectreconsole/spectre.console/discussions/573            
+        //write (s) 
+    override _.WriteLine (s:string)  :  unit = // actually never used in F# printfn, but maybe buy other toos using the console or error out , see  https://github.com/dotnet/fsharp/issues/3712
+        if s.Contains "\u001b" then  writeLine ("eSc"+s) else writeLine ("?"+s) 
+        //writeLine (s)    
+    override _.WriteLine ()          = writeLine ("")
+       *)
+
+
 
 
 /// <summary>A ReadOnly text AvalonEdit Editor that provides colored appending via printfn like functions. </summary>
@@ -287,44 +331,58 @@ type AvalonLog () =
     /// or System.Console.SetError(textWriter)
     member _.GetTextWriter(red, green, blue) = 
         let br = Brush.ofRGB red green blue
-        new LogTextWriter(
-                (fun s -> printOrBuffer (s, false, br)),
-                (fun s -> printOrBuffer (s, true , br))
-                )
+        new LogTextWriter   (fun s -> printOrBuffer (s, false, br)
+                            ,fun s -> printOrBuffer (s, true , br)
+                            )
 
     /// Returns a threadsafe Textwriter that prints to AvalonLog in Color
     /// for use as use System.Console.SetOut(textWriter)
     /// or System.Console.SetError(textWriter)
     member _.GetTextWriter(br:SolidColorBrush) = 
         let fbr = br|> freeze
-        new LogTextWriter(
-                (fun s -> printOrBuffer (s, false, fbr)),
-                (fun s -> printOrBuffer (s, true , fbr))
-                )
+        new LogTextWriter   (fun s -> printOrBuffer (s, false, fbr)
+                            ,fun s -> printOrBuffer (s, true , fbr)
+                            )
 
     /// Returns a threadsafe Textwriter that only prints to AvalonLog
     /// if the predicate returns true for the string sent to the text writer.
     /// The provide Color will be used.
-    member _.GetTextWriterIf(predicate:string->bool, br:SolidColorBrush) = 
+    member _.GetConditionalTextWriter(predicate:string->bool, br:SolidColorBrush) = 
         let fbr = br|> freeze
-        new LogTextWriter(
-                (fun s -> if predicate s then printOrBuffer (s, false, fbr)),
-                (fun s -> if predicate s then printOrBuffer (s, true , fbr))
-                )
+        new LogTextWriter   (fun s -> printOrBuffer (s, false, fbr)
+                            ,fun s -> printOrBuffer (s, true , fbr)
+                            )
+
 
     /// Returns a threadsafe Textwriter that only prints to AvalonLog
     /// if the predicate returns true for the string sent to the text writer.
     /// The predicate can also be used for other side effects before printing.
     /// The provided red, green and blue Color values will be used will be used.
     /// Intgers will be clamped to be between 0 and 255
-    member _.GetTextWriterIf(predicate:string->bool, red, green, blue) = 
+    member _.GetConditionalTextWriter(predicate:string->bool, red, green, blue) = 
         let br = Brush.ofRGB red green blue
-        new LogTextWriter(
-                (fun s -> if predicate s then printOrBuffer (s, false, br)),
-                (fun s -> if predicate s then printOrBuffer (s, true , br))
-                )
+        new LogTextWriter   (fun s -> printOrBuffer (s, false, br)
+                            ,fun s -> printOrBuffer (s, true , br)
+                            )
 
+    (*
+    part of trying to enable Ansi Control sequences for https://github.com/spectreconsole/spectre.console
+    https://stackoverflow.com/a/34078058/969070
 
+    member _.GetStreamWriter(br:SolidColorBrush) = 
+        let fbr = br|> freeze
+        new LogStreamWriter (new MemoryStream()
+                            ,fun s -> printOrBuffer (s, false, fbr)
+                            ,fun s -> printOrBuffer (s, true , fbr)
+                            )
+    
+    member _.GetStreamWriter(red, green, blue) = 
+        let br = Brush.ofRGB red green blue
+        new LogStreamWriter (new MemoryStream()
+                            ,fun s -> printOrBuffer (s, false, br)
+                            ,fun s -> printOrBuffer (s, true , br)
+                            )
+    *)
 
     //--------------------------------------
     // Append string:
