@@ -79,9 +79,9 @@ type AvalonLog () =
     let offsetColors = ResizeArray<NewColor>( [ {off = -1 ; brush=null} ] )    // null is console out // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
 
 
-    /// Same as default forground in underlaying AvalonEdit.
-    /// Will be chnaged if AvalonEdit foreground brush changes
-    let mutable defaultBrush    = Brushes.Black     |> freeze // should be same as default forground. Will be set on foreground color changes
+    /// Same as default foreground in underlaying AvalonEdit.
+    /// Will be changed if AvalonEdit foreground brush changes
+    let mutable defaultBrush    = Brushes.Black     |> freeze // should be same as default foreground. Will be set on foreground color changes
 
     /// Used for printing with custom rgb values
     let mutable customBrush     = Brushes.Black     |> freeze   // will be changed anyway on first call
@@ -162,7 +162,7 @@ type AvalonLog () =
     /// Optionally adds new line at end.
     /// Sets line color on LineColors dictionay for DocumentColorizingTransformer.
     /// printOrBuffer (txt:string, addNewLine:bool, typ:SolidColorBrush)
-    let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence charctars and dont print or count them, how many are skiped by avaedit during Text.Append??
+    let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence characters and dont print or count them, how many are skiped by avaedit during Text.Append??
         if stillLessThanMaxChars && (txt.Length <> 0 || addNewLine) then
             lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
                 // Change color if needed:
@@ -279,7 +279,7 @@ type AvalonLog () =
     /// The maximum amount of charcters this AvaloLog can display.
     /// By default this about one Million characters
     /// This is to avaoid freezing the UI when the AvaloLog is flooded with text.
-    /// When the maximum is reached a message will be printed at the end, then the printing stops untill the content is cleared.
+    /// When the maximum is reached a message will be printed at the end, then the printing stops until the content is cleared.
     member _.MaximumCharacterAllowance
         with get () = maxCharsInLog
         and  set v  = maxCharsInLog <- v
@@ -288,17 +288,17 @@ type AvalonLog () =
     /// To access the underlying  AvalonEdit TextEditor class
     /// Don't append , clear or modify the Text property directly!
     /// This will mess up the coloring.
-    /// Only use the printfn familly of functions to add text to AvalonLog
+    /// Only use the printfn family of functions to add text to AvalonLog
     /// Use this member only for styling changes
     /// use #nowarn "44" to disable the obsolete warning
     [<Obsolete("It is not actually obsolete, but normally not used, so hidden from editor tools. In F# use #nowarn \"44\" to disable the obsolete warning")>]
     member _.AvalonEdit = log
 
-    /// The Highligther for selected text
+    /// The Highlighter for selected text
     member _.SelectedTextHighLighter = hiLi
 
-    /// Clear all Text. (threadsafe)
-    /// The Color of the last print will still be remebered
+    /// Clear all Text. (thread-safe)
+    /// The Color of the last print will still be remembered
     /// e.g. for log.AppendWithLastColor(..)
     member _.Clear() :unit = 
         lock buffer (fun () ->
@@ -326,7 +326,7 @@ type AvalonLog () =
             )
 
 
-    /// Returns a threadsafe Textwriter that prints to AvalonLog in Color
+    /// Returns a thread-safe Textwriter that prints to AvalonLog in Color
     /// for use as use System.Console.SetOut(textWriter)
     /// or System.Console.SetError(textWriter)
     member _.GetTextWriter(red, green, blue) = 
@@ -335,7 +335,7 @@ type AvalonLog () =
                             ,fun s -> printOrBuffer (s, true , br)
                             )
 
-    /// Returns a threadsafe Textwriter that prints to AvalonLog in Color
+    /// Returns a thread-safe Textwriter that prints to AvalonLog in Color
     /// for use as use System.Console.SetOut(textWriter)
     /// or System.Console.SetError(textWriter)
     member _.GetTextWriter(br:SolidColorBrush) = 
@@ -344,7 +344,7 @@ type AvalonLog () =
                             ,fun s -> printOrBuffer (s, true , fbr)
                             )
 
-    /// Returns a threadsafe Textwriter that only prints to AvalonLog
+    /// Returns a thread-safe Textwriter that only prints to AvalonLog
     /// if the predicate returns true for the string sent to the text writer.
     /// The provide Color will be used.
     member _.GetConditionalTextWriter(predicate:string->bool, br:SolidColorBrush) = 
@@ -354,11 +354,11 @@ type AvalonLog () =
                             )
 
 
-    /// Returns a threadsafe Textwriter that only prints to AvalonLog
+    /// Returns a thread-safe Textwriter that only prints to AvalonLog
     /// if the predicate returns true for the string sent to the text writer.
     /// The predicate can also be used for other side effects before printing.
     /// The provided red, green and blue Color values will be used will be used.
-    /// Intgers will be clamped to be between 0 and 255
+    /// Integers will be clamped to be between 0 and 255
     member _.GetConditionalTextWriter(predicate:string->bool, red, green, blue) = 
         let br = Brush.ofRGB red green blue
         new LogTextWriter   (fun s -> printOrBuffer (s, false, br)

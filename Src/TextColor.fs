@@ -37,8 +37,8 @@ type internal RangeColor =
     }
 
     /// Finds all the offset that apply to this line  which is defined by the range of  tOff to enOff
-    /// even if the ResizeArray<NewColor> does not conrtain any offest between stOff and  enOff
-    /// it still retuens the a list with one item. The closest previous offset
+    /// even if the ResizeArray<NewColor> does not contain any offset between stOff and  enOff
+    /// it still returns the a list with one item. The closest previous offset
     static member getInRange (cs:ResizeArray<NewColor>) stOff enOff = 
         let rec mkList i ls = 
             let c = NewColor.findCurrentInList cs i
@@ -77,7 +77,7 @@ type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<New
             // color non selected lines
             if selStart = selEnd  || selStart > enLn || selEnd < stLn then// no selection in general or on this line
                 for c in cs do
-                    if c.brush = null && any then //changing the basefore ground is only needed if any other color already exists on this line
+                    if c.brush = null && any then //changing the baseforeground is only needed if any other color already exists on this line
                         base.ChangeLinePart(c.start, c.ende, fun element -> element.TextRunProperties.SetForegroundBrush(defaultBrush))
                     else
                         if notNull c.brush then // might still happen on first line

@@ -28,7 +28,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
         if isEnabled then
             let selTxt = 
                 let sel = lg.TextArea.Selection
-                if sel.Length < 2 then ""                                      //only highlight if 2 or more chracters selceted
+                if sel.Length < 2 then ""                                      //only highlight if 2 or more characters selected
                 elif sel.StartPosition.Line <> sel.EndPosition.Line then ""    //only highlight if one-line-selection
                 else
                     let selt = lg.SelectedText //sel.GetText() // for block selection this will contain everything from first segment till last segment, even the unselected.
@@ -40,7 +40,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
                 highTxt <- selTxt
                 curSelStart <- lg.SelectionStart
                 curSelEnd <- curSelStart + selTxt.Length - 1
-                lg.TextArea.TextView.Redraw() // this triggers ColorizeLine on every visibel line.
+                lg.TextArea.TextView.Redraw() // this triggers ColorizeLine on every visible line.
 
                 // for events to complete count in full document :
                 let doc = lg.Document // get doc in sync first !
@@ -63,22 +63,22 @@ type SelectedTextHighlighter (lg:TextEditor) =
                     }   |> Async.Start
 
             else
-                if notNull highTxt then // to ony redraw if it was not null before b ut should be null now because selTxt=""
+                if notNull highTxt then // to only redraw if it was not null before but should be null now because selTxt=""
                     highTxt <- null
                     lg.TextArea.TextView.Redraw() // to clear highlight
                     highlightClearedEv.Trigger()
 
 
-    /// Occures when the selection clears or or is less than two non-whitespace Characters.
+    /// Occurs when the selection clears or or is less than two non-whitespace Characters.
     [<CLIEvent>]
     member _.OnHighlightCleared = highlightClearedEv.Publish
 
-    /// Occures when the selection changes to more than two non-whitespace Characters.
+    /// Occurs when the selection changes to more than two non-whitespace Characters.
     /// Returns tuple of selected text and list of all start offsets in full text. (including invisible ones)
     [<CLIEvent>]
     member _.OnHighlightChanged = highlightChangedEv.Publish
 
-    /// The color used for highlighting other occurances of the selected text.
+    /// The color used for highlighting other occurrences of the selected text.
     member _.ColorHighlighting
         with get () = colorHighlight
         and  set v  = colorHighlight <- Brush.freeze v
@@ -91,7 +91,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
             if on then selectionChanged()
             elif notNull highTxt then // now off, clear highlight if any
                 lg.TextArea.TextView.Redraw() // to clear highlight
-                highlightClearedEv.Trigger() //therse was a highlight bevor thats off now
+                highlightClearedEv.Trigger() //there was a highlight before thats off now
 
 
     /// The main override for DocumentColorizingTransformer.
