@@ -28,8 +28,8 @@
 
     <Authors>GoswinR</Authors>
     <Copyright>Goswin Rothenthal 2021</Copyright>
-    <PackageDescription>A fast and threadsave WPF text viewer for colored text. Including F# printf formating . Based on AvalonEdit</PackageDescription>
-    <Description>A fast and threadsave WPF text viewer for colored text. Including F# printf formating. Based on AvalonEdit</Description>
+    <PackageDescription>A fast and thread-save WPF text viewer for colored text. Including F# printf formating . Based on AvalonEdit</PackageDescription>
+    <Description>A fast and thread-save WPF text viewer for colored text. Including F# printf formating. Based on AvalonEdit</Description>
     
     <!-- <ApplicationIcon>Docs/logo.ico</ApplicationIcon> -->
 
@@ -48,7 +48,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageIcon>logo128.png</PackageIcon>
     <PackageReadmeFile>READMEnuget.md</PackageReadmeFile> <!-- using snupkg the readme does not pack https://github.com/NuGet/Home/issues/10791 -->
-    <PackageDescription>A fast and threadsave WPF text viewer for colored text. Including F# printf formating . Based on AvalonEdit</PackageDescription>
+    <PackageDescription>A fast and thread-save WPF text viewer for colored text. Including F# printf formating . Based on AvalonEdit</PackageDescription>
     <PackageTags>WPF Text Console F# AvalonEdit</PackageTags>
   </PropertyGroup>
 
@@ -64,7 +64,7 @@
     <None Include="README.md" />
     <None Include="Doc/READMEnuget.md" Pack="true" PackagePath="" />
     <None Include="Doc/avalog.fsx" />
-    <None Include="Doc/logo128.png" Pack="true" PackagePath="" /> <!--PackagePath = "" makes the file availabe to nuget pack tool-->
+    <None Include="Doc/logo128.png" Pack="true" PackagePath="" /> <!--PackagePath = "" makes the file available to nuget pack tool-->
 
     <Compile Include="Src/Sync.fs" />
     <Compile Include="Src/Brush.fs" />
