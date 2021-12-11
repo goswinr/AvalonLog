@@ -1,4 +1,4 @@
-namespace AvalonLog
+﻿namespace AvalonLog
 
 open AvalonLog.Util
 open AvalonLog.Brush
@@ -307,9 +307,7 @@ type AvalonLog () =
             docLength <- 0
             prevMsgBrush <- null
             stillLessThanMaxChars <- true
-            printCallsCounter := 0L
-            offsetColors.Clear()
-            offsetColors.Add {off = -1 ; brush=null} //TODO use -1 instead? // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
+            printCallsCounter := 0L            
             )
 
         // log.Dispatcher.Invoke needed.
@@ -317,6 +315,8 @@ type AvalonLog () =
         // It starts faster than async with SwitchToContext
         log.Dispatcher.Invoke( fun () ->
             log.Clear()
+            offsetColors.Clear() // this should be done after log.clear() to avoid race condition where log tries to redraw but offsetColors is already empty
+            offsetColors.Add {off = -1 ; brush=null}  // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
             //log.SelectionLength <- 0
             //log.SelectionStart <- 0
             defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze)   // TODO or remember custom brush ?

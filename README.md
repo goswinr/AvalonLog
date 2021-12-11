@@ -8,7 +8,7 @@
 
 ![logo](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Doc/logo400.png)
 
-Avalonlog is a fast and threadsave WPF text log viewer for colored text. Including F# printf formating . Based on [AvalonEditB](https://github.com/goswinr/AvalonEditB). Works on .NET Framework 4.7.2 and .NET 5.0
+AvalonLog is a fast and thread-save WPF text log viewer for colored text. Including F# printf formatting . Based on [AvalonEditB](https://github.com/goswinr/AvalonEditB). Works on .NET Framework 4.7.2 and .NET 5.0
 
 ### Usage
 
@@ -31,7 +31,7 @@ let red   = log.printfColor 255 0 0  // without newline
 let blue  = log.printfnColor 0 0 255 // with newline
 let green = log.printfnColor 0 155 0 // with newline
 
-// print to log using F# printf formating
+// print to log using F# printf formatting
 red   "Hello, "
 blue  "World!"
 red   "The answer"
@@ -51,7 +51,7 @@ public void AppendWithBrush(SolidColorBrush br, string s)
 and similar functions on the `AvalonLog` instance.
 ### Documentation
 
-See extracted API at [fuget.org](https://www.fuget.org/packages/AvalonLog/0.4.0/lib/net472/AvalonLog.dll/AvalonLog) 
+See extracted API at [fuget.org](https://www.fuget.org/packages/AvalonLog/0.5.0/lib/net472/AvalonLog.dll/AvalonLog) 
 
 ### Download
 
@@ -61,7 +61,7 @@ AvalonLog is available as [NuGet package](https://www.nuget.org/packages/AvalonL
 
 Just run `dotnet build` 
  
-### Licence
+### License
 
 MIT
 

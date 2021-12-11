@@ -1,4 +1,4 @@
-namespace AvalonLog
+﻿namespace AvalonLog
 
 open AvalonLog.Util
 open System
