@@ -24,7 +24,7 @@ Here an short example for F# interactive in .NET Framework.
 
 open System.Windows
 
-let log = new AvalonLog.AvalonLog() // The main class wraping an Avalonedit TextEditor as append only log.
+let log = new AvalonLog.AvalonLog() // The main class wrapping an Avalonedit TextEditor as append only log.
 
 // create some printing functions by partial application:
 let red   = log.printfColor 255 0 0  // without newline
@@ -68,10 +68,14 @@ MIT
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
 ### Changelog
-
- `0.3.1` 
-- Update Xml Docstrings
+`0.5.0`
+- Update to AvalonEditB `1.3.0`
+- target net6.0 and net472
+- fix typos in docstring
 
 `0.4.0`
 - Update to AvalonEditB `1.2.0` 
 - Rename `GetTextWriterIf` to `GetConditionalTextWriter`
+
+ `0.3.1` 
+- Update Xml Docstrings

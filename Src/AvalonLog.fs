@@ -1,4 +1,4 @@
-﻿namespace AvalonLog
+namespace AvalonLog
 
 open AvalonLog.Util
 open AvalonLog.Brush
@@ -23,7 +23,7 @@ type LogTextWriter(write,writeLine) =
         //if s.Contains "\u001b" then  write ("esc"+s) else write ("?"+s) //debugging for using  spectre ?? https://github.com/spectreconsole/spectre.console/discussions/573            
         write (s) 
     
-    override _.WriteLine (s:string)  = // actually never used in F# printfn, but maybe buy other toos using the console or error out , see  https://github.com/dotnet/fsharp/issues/3712
+    override _.WriteLine (s:string)  = // actually never used in F# printfn, but maybe buy other too using the console or error out , see  https://github.com/dotnet/fsharp/issues/3712
         //if s.Contains "\u001b" then  writeLine ("eSc"+s) else writeLine ("?"+s) 
         writeLine (s)    
     
@@ -31,9 +31,9 @@ type LogTextWriter(write,writeLine) =
 
 
     (*
-       trying to enable Ansi Control sequences for https://github.com/spectreconsole/spectre.console
+       trying to enable ANSI Control sequences for https://github.com/spectreconsole/spectre.console
 
-       but doeant work yet ESC char seam to be swallowed by Console.SetOut to textWriter. see:
+       but doesn't work yet ESC char seam to be swallowed by Console.SetOut to textWriter. see:
 
        //https://stackoverflow.com/a/34078058/969070
        //let stdout = Console.OpenStandardOutput()
@@ -45,7 +45,7 @@ type LogTextWriter(write,writeLine) =
        Although an application can use WriteConsole in ANSI mode to write ANSI characters, consoles do not support ANSI escape sequences. 
        However, some functions provide equivalent functionality. For more information, see SetCursorPos, SetConsoleTextAttribute, and GetConsoleCursorInfo.
        
-       To write the bytes directly to the console without WriteConsoleW interfering a simple filehandle/stream will do which is achieved by calling OpenStandardOutput. 
+       To write the bytes directly to the console without WriteConsoleW interfering a simple file-handle/stream will do which is achieved by calling OpenStandardOutput. 
        By wrapping that stream in a StreamWriter so we can set it again with Console.SetOut we are done. The byte sequences are send to the OutputStream and picked up by AnsiCon.
   
        let strWriter = l.AvalonLog.GetStreamWriter( LogColors.consoleOut) // Encoding.ASCII ??  
@@ -58,7 +58,7 @@ type LogStreamWriter(ms:MemoryStream,write,writeLine) =
     override _.Write (s:string) :  unit = 
         if s.Contains "\u001b" then  write ("esc"+s) else write ("?"+s) //use specter ?? https://github.com/spectreconsole/spectre.console/discussions/573            
         //write (s) 
-    override _.WriteLine (s:string)  :  unit = // actually never used in F# printfn, but maybe buy other toos using the console or error out , see  https://github.com/dotnet/fsharp/issues/3712
+    override _.WriteLine (s:string)  :  unit = // actually never used in F# printfn, but maybe buy other too using the console or error out , see  https://github.com/dotnet/fsharp/issues/3712
         if s.Contains "\u001b" then  writeLine ("eSc"+s) else writeLine ("?"+s) 
         //writeLine (s)    
     override _.WriteLine ()          = writeLine ("")
@@ -75,7 +75,7 @@ type AvalonLog () =
     inherit ContentControl()  // the most simple and generic type of UIelement container, like a <div> in html
 
     /// Stores all the locations where a new color starts.
-    /// Will be searched via binary serach in colorizing transformers
+    /// Will be searched via binary search in colorizing transformers
     let offsetColors = ResizeArray<NewColor>( [ {off = -1 ; brush=null} ] )    // null is console out // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
 
 
@@ -99,7 +99,7 @@ type AvalonLog () =
     let colo = new ColorizingTransformer(log, offsetColors, defaultBrush)
 
     do
-        base.Content <- log  //nest Avlonedit inside a simple ContentControl to hide most of its functionality
+        base.Content <- log  //nest Avalonedit inside a simple ContentControl to hide most of its functionality
 
         log.FontFamily <- FontFamily("Consolas")
         log.FontSize <- 14.0
@@ -109,11 +109,11 @@ type AvalonLog () =
         log.Options.EnableHyperlinks <- true
         log.TextArea.SelectionCornerRadius <- 0.0
         log.TextArea.SelectionBorder <- null
-        log.TextArea.TextView.LinkTextForegroundBrush <- Brushes.Blue |> Brush.freeze //Hyperlinks color
+        log.TextArea.TextView.LinkTextForegroundBrush <- Brushes.Blue |> Brush.freeze //Hyper-links color
 
 
         log.TextArea.TextView.LineTransformers.Add(colo) // to actually draw colored text
-        log.TextArea.SelectionChanged.Add colo.SelectionChangedDelegate // to exclude selcted text from beeing colored
+        log.TextArea.SelectionChanged.Add colo.SelectionChangedDelegate // to exclude selected text from being colored
 
         // to highlight all instances of the selected word
         log.TextArea.TextView.LineTransformers.Add(hiLi)
@@ -131,7 +131,7 @@ type AvalonLog () =
     let mutable docLength = 0  //to be able to have the doc length async
     let mutable maxCharsInLog = 1024_000 // about 10k lines with 100 chars each
     let mutable stillLessThanMaxChars = true
-    let mutable dontPrintJustBuffer = false // for use in this.Clear() to make sur a print after a clear does not get swallowed
+    let mutable dontPrintJustBuffer = false // for use in this.Clear() to make sure a print after a clear does not get swallowed
 
 
 
@@ -151,7 +151,7 @@ type AvalonLog () =
     let printToLog() = 
         let txt = lock buffer getBufferText //lock for safe access
         if txt.Length > 0 then //might be empty from calls during dontPrintJustBuffer = true
-            log.AppendText(txt)     // TODO is it possibel that avalon edit skips adding some escape ANSI characters to document?? then docLength could be out of sync !! TODO
+            log.AppendText(txt)     // TODO is it possible that avalonedit skips adding some escape ANSI characters to document?? then docLength could be out of sync !! TODO
             log.ScrollToEnd()
             if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712
             stopWatch.Restart()
@@ -160,7 +160,7 @@ type AvalonLog () =
 
     /// Adds string on UI thread  every 150ms then scrolls to end after 300ms.
     /// Optionally adds new line at end.
-    /// Sets line color on LineColors dictionay for DocumentColorizingTransformer.
+    /// Sets line color on LineColors dictionary for DocumentColorizingTransformer.
     /// printOrBuffer (txt:string, addNewLine:bool, typ:SolidColorBrush)
     let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence characters and dont print or count them, how many are skiped by avaedit during Text.Append??
         if stillLessThanMaxChars && (txt.Length <> 0 || addNewLine) then
@@ -180,7 +180,7 @@ type AvalonLog () =
                 )
 
             // check if total text in log  is already to big , print it and then stop printing
-            if docLength > maxCharsInLog then // neded when log gets piled up with exception messages form Avalonedit rendering pipeline.
+            if docLength > maxCharsInLog then // needed when log gets piled up with exception messages form Avalonedit rendering pipeline.
                 stillLessThanMaxChars <- false
                 async {
                     do! Async.SwitchToContext SyncAvalonLog.context
@@ -215,7 +215,7 @@ type AvalonLog () =
 
                     //previous version:
                     //async {
-                    //    do! Async.SwitchToContext SyncAvalonLog.context // slower to start but this would  would this propagate exceptions too ?
+                    //    do! Async.SwitchToContext SyncAvalonLog.context // slower to start but this would this propagate exceptions too ?
                     //    printToLog() // runs with a lock too
                     //    } |> Async.StartImmediate
 
@@ -276,9 +276,9 @@ type AvalonLog () =
     //----------------------AvalonLog specific members:----------
     //------------------------------------------------------------
 
-    /// The maximum amount of charcters this AvaloLog can display.
+    /// The maximum amount of characters this AvaloLog can display.
     /// By default this about one Million characters
-    /// This is to avaoid freezing the UI when the AvaloLog is flooded with text.
+    /// This is to avoid freezing the UI when the AvaloLog is flooded with text.
     /// When the maximum is reached a message will be printed at the end, then the printing stops until the content is cleared.
     member _.MaximumCharacterAllowance
         with get () = maxCharsInLog
@@ -319,7 +319,7 @@ type AvalonLog () =
             log.Clear()
             //log.SelectionLength <- 0
             //log.SelectionStart <- 0
-            defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze)   // TODO or remeber custstom brush ?
+            defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze)   // TODO or remember custom brush ?
             log.TextArea.TextView.linesCollapsedVisualPosOffThrowCount <- 0 // custom property in AvalonEditB to avoid throwing too many exceptions. set 0 so exceptions appear again
             stopWatch.Restart() // works async too
             dontPrintJustBuffer <- false // this is important to release pending prints stuck in while loop in printOrBuffer()
@@ -366,7 +366,7 @@ type AvalonLog () =
                             )
 
     (*
-    part of trying to enable Ansi Control sequences for https://github.com/spectreconsole/spectre.console
+    part of trying to enable ANSI Control sequences for https://github.com/spectreconsole/spectre.console
     https://stackoverflow.com/a/34078058/969070
 
     member _.GetStreamWriter(br:SolidColorBrush) = 

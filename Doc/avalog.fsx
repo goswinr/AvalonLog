@@ -6,7 +6,7 @@
 
 open System.Windows
 
-let log = new AvalonLog.AvalonLog() // The main class wraping an Avalonedit TextEditor as append only log.
+let log = new AvalonLog.AvalonLog() // The main class wrapping an Avalonedit TextEditor as append only log.
 
 // create some printing functions by partial application:
 let red   = log.printfColor 255 0 0  // without newline

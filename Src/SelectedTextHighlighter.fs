@@ -69,7 +69,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
                     highlightClearedEv.Trigger()
 
 
-    /// Occurs when the selection clears or or is less than two non-whitespace Characters.
+    /// Occurs when the selection clears or is less than two non-whitespace Characters.
     [<CLIEvent>]
     member _.OnHighlightCleared = highlightClearedEv.Publish
 

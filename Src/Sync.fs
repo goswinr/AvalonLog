@@ -32,7 +32,7 @@ type internal SyncAvalonLog private () =
             failwith ("See" + file)
 
 
-    /// The UI SynchronizationContext to switch to inside async workflows
+    /// The UI SynchronizationContext to switch to inside async work-flows
     /// Accessing this member from any thread will set up the sync context first if it is not there yet.
     static member context = 
         if isNull ctx then installSynchronizationContext(true)

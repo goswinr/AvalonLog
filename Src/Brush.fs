@@ -5,7 +5,7 @@ module Brush =
     open System
     open System.Windows.Media // for SolidColorBrush
 
-    /// Make it therad safe and faster
+    /// Make it thread-safe and faster
     let inline freeze(br:SolidColorBrush)= 
         if not br.IsFrozen then
             if br.CanFreeze then br.Freeze()

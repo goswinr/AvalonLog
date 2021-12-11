@@ -1,4 +1,4 @@
-﻿namespace AvalonLog
+namespace AvalonLog
 
 open AvalonLog.Util
 open System
@@ -15,8 +15,10 @@ type internal NewColor =
     }
 
     /// Does binary search to find an offset that is equal or smaller than currOff
-    static member findCurrentInList (cs:ResizeArray<NewColor>) currOff = 
-        let last = cs.Count-1  //TODO is it possible that count increases while iterating?
+    static member findCurrentInList (cs:ResizeArray<NewColor>) currOff :NewColor = 
+        //  cs has a least one item that is {off = -1 ; brush=null}, set in Avalonlog constructor
+        
+        let last = cs.Count-1  //TODO: is it possible that count increases while iterating?
         let rec find lo hi = 
             let mid = lo + (hi - lo) / 2          //TODO test edge conditions !!
             if cs.[mid].off <= currOff then
@@ -27,7 +29,7 @@ type internal NewColor =
                 find lo (mid-1)
         find 0 last
 
-/// Describes the the start and end position of a color with one line
+/// Describes the start and end position of a color with one line
 [<Struct>]
 type internal RangeColor = 
     {
@@ -50,7 +52,7 @@ type internal RangeColor =
 
 
 /// To implement the actual colors from colored printing
-type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>,defaultBrush) = 
+type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>, defaultBrush) = 
     inherit Rendering.DocumentColorizingTransformer()
 
     let mutable selStart = -9
@@ -77,7 +79,7 @@ type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<New
             // color non selected lines
             if selStart = selEnd  || selStart > enLn || selEnd < stLn then// no selection in general or on this line
                 for c in cs do
-                    if c.brush = null && any then //changing the baseforeground is only needed if any other color already exists on this line
+                    if c.brush = null && any then //changing the base-foreground is only needed if any other color already exists on this line
                         base.ChangeLinePart(c.start, c.ende, fun element -> element.TextRunProperties.SetForegroundBrush(defaultBrush))
                     else
                         if notNull c.brush then // might still happen on first line
