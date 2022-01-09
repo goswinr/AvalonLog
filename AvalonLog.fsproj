@@ -17,13 +17,11 @@
     <Product>AvalonLog</Product>
     <PackageId>AvalonLog</PackageId>
 
-    <Version>0.5.0</Version>
-    <AssemblyVersion>0.5.0</AssemblyVersion>
-    <FileVersion>0.5.0</FileVersion>
-    <PackageReleaseNotes>
-      - Update to AvalonEditB 1.3.0
-      - target net6.0 and net472
-      - fix typos in docstring
+    <Version>0.6.0</Version>
+    <AssemblyVersion>0.6.0</AssemblyVersion>
+    <FileVersion>0.6.0</FileVersion>
+    <PackageReleaseNotes>      
+      - fix ConditionalTextWriter
     </PackageReleaseNotes>
 
     <Authors>GoswinR</Authors>
@@ -55,6 +53,8 @@
   <ItemGroup>
     <PackageReference Include="AvalonEditB" Version="1.3.0" />
     <!-- <Reference Include="AvalonEditB" HintPath="../AvalonEditB/AvalonEditB/bin/Release/net472/AvalonEditB.dll" /> -->
+    <PackageReference Update="FSharp.Core" Version="4.5.2" />
+    <!-- otherwise the minimum FSharp.Core version would be forced by the SDK used for building it. this would be needlessly too high-->
 
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
     <!-- https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#controlling-dependency-assets -->

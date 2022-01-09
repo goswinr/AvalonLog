@@ -68,6 +68,9 @@ MIT
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
 ### Changelog
+`0.6.0`
+- fix ConditionalTextWriter
+
 `0.5.0`
 - Update to AvalonEditB `1.3.0`
 - target net6.0 and net472
