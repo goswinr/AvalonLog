@@ -349,8 +349,8 @@ type AvalonLog () =
     /// The provide Color will be used.
     member _.GetConditionalTextWriter(predicate:string->bool, br:SolidColorBrush) = 
         let fbr = br|> freeze
-        new LogTextWriter   (fun s -> printOrBuffer (s, false, fbr)
-                            ,fun s -> printOrBuffer (s, true , fbr)
+        new LogTextWriter   (fun s -> if predicate s then printOrBuffer (s, false, fbr)
+                            ,fun s -> if predicate s then printOrBuffer (s, true , fbr)
                             )
 
 
@@ -361,8 +361,8 @@ type AvalonLog () =
     /// Integers will be clamped to be between 0 and 255
     member _.GetConditionalTextWriter(predicate:string->bool, red, green, blue) = 
         let br = Brush.ofRGB red green blue
-        new LogTextWriter   (fun s -> printOrBuffer (s, false, br)
-                            ,fun s -> printOrBuffer (s, true , br)
+        new LogTextWriter   (fun s -> if predicate s then printOrBuffer (s, false, br)
+                            ,fun s -> if predicate s then printOrBuffer (s, true , br)
                             )
 
     (*
