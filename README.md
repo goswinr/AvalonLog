@@ -68,6 +68,9 @@ MIT
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
 ### Changelog
+`0.7.0`
+- fix crash when Log has more than 1000k characters
+
 `0.6.0`
 - fix ConditionalTextWriter
 

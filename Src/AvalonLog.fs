@@ -155,8 +155,9 @@ type AvalonLog () =
             log.ScrollToEnd()
             if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712
             stopWatch.Restart()
-
+    
     let newLine = Environment.NewLine
+
 
     /// Adds string on UI thread  every 150ms then scrolls to end after 300ms.
     /// Optionally adds new line at end.
@@ -181,14 +182,24 @@ type AvalonLog () =
 
             // check if total text in log  is already to big , print it and then stop printing
             if docLength > maxCharsInLog then // needed when log gets piled up with exception messages form Avalonedit rendering pipeline.
-                stillLessThanMaxChars <- false
-                async {
-                    do! Async.SwitchToContext SyncAvalonLog.context
-                    printToLog()// runs with a lock too
-                    log.AppendText(sprintf "%s%s  *** STOP OF LOGGING *** Log has more than %d characters! clear Log view first" newLine newLine maxCharsInLog)
-                    log.ScrollToEnd()
-                    log.ScrollToEnd() // call twice because of https://github.com/icsharpcode/AvalonEdit/issues/226
-                    } |> Async.StartImmediate
+                stillLessThanMaxChars <- false                
+                log.Dispatcher.Invoke(printToLog) 
+                let itsOverTxt = sprintf "%s%s  **** STOP OF LOGGING **** Log has more than %d characters! Clear Log view first %s%s%s%s " newLine newLine maxCharsInLog  newLine newLine  newLine newLine
+                lock buffer (fun () ->  
+                     offsetColors.Add { off = docLength; brush = Brushes.Red |> freeze}
+                     buffer.AppendLine(itsOverTxt)  |> ignoreObj
+                     docLength <- docLength + itsOverTxt.Length
+                    )
+                log.Dispatcher.Invoke(printToLog)
+                    
+                //previous version: (suffers from race condition where Async.SwitchToContext SyncAvalonLog.context does not work)
+                //async {
+                //    do! Async.SwitchToContext SyncAvalonLog.context
+                //    printToLog()// runs with a lock too                    
+                //    log.AppendText(sprintf "%s%s  *** STOP OF LOGGING *** Log has more than %d characters! clear Log view first" newLine newLine maxCharsInLog)
+                //    log.ScrollToEnd()
+                //    log.ScrollToEnd() // call twice because of https://github.com/icsharpcode/AvalonEdit/issues/226
+                //    } |> Async.StartImmediate
 
             // check if we are in the process of clearing the view
             elif dontPrintJustBuffer then // wait really long before printing
