@@ -79,7 +79,7 @@ type AvalonLog () =
     let offsetColors = ResizeArray<NewColor>( [ {off = -1 ; brush=null} ] )    // null is console out // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
 
 
-    /// Same as default foreground in underlaying AvalonEdit.
+    /// Same as default foreground in underlying AvalonEdit.
     /// Will be changed if AvalonEdit foreground brush changes
     let mutable defaultBrush    = Brushes.Black     |> freeze // should be same as default foreground. Will be set on foreground color changes
 
@@ -150,7 +150,7 @@ type AvalonLog () =
     /// must be called in sync
     let printToLog() = 
         let txt = lock buffer getBufferText //lock for safe access
-        if txt.Length > 0 then //might be empty from calls during dontPrintJustBuffer = true
+        if txt.Length > 0 then //might be empty from calls during dont PrintJustBuffer = true
             log.AppendText(txt)     // TODO is it possible that avalonedit skips adding some escape ANSI characters to document?? then docLength could be out of sync !! TODO
             log.ScrollToEnd()
             if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712
@@ -163,7 +163,7 @@ type AvalonLog () =
     /// Optionally adds new line at end.
     /// Sets line color on LineColors dictionary for DocumentColorizingTransformer.
     /// printOrBuffer (txt:string, addNewLine:bool, typ:SolidColorBrush)
-    let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence characters and dont print or count them, how many are skiped by avaedit during Text.Append??
+    let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence characters and don't print or count them, how many are skiped by avaedit during Text.Append??
         if stillLessThanMaxChars && (txt.Length <> 0 || addNewLine) then
             lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
                 // Change color if needed:
@@ -206,7 +206,7 @@ type AvalonLog () =
                 async {
                     let k = Interlocked.Increment printCallsCounter
                     do! Async.Sleep 100
-                    while dontPrintJustBuffer do // wait till dontPrintJustBuffer is set true from end of this.Clear() call
+                    while dontPrintJustBuffer do // wait till dont PrintJustBuffer is set true from end of this.Clear() call
                         do! Async.Sleep 100
                     if !printCallsCounter = k  then //it is the last call for 100 ms
                         // on why using Invoke: https://stackoverflow.com/a/19009579/969070
@@ -287,9 +287,9 @@ type AvalonLog () =
     //----------------------AvalonLog specific members:----------
     //------------------------------------------------------------
 
-    /// The maximum amount of characters this AvaloLog can display.
+    /// The maximum amount of characters this AvalonLog can display.
     /// By default this about one Million characters
-    /// This is to avoid freezing the UI when the AvaloLog is flooded with text.
+    /// This is to avoid freezing the UI when the AvalonLog is flooded with text.
     /// When the maximum is reached a message will be printed at the end, then the printing stops until the content is cleared.
     member _.MaximumCharacterAllowance
         with get () = maxCharsInLog
@@ -337,7 +337,7 @@ type AvalonLog () =
             )
 
 
-    /// Returns a thread-safe Textwriter that prints to AvalonLog in Color
+    /// Returns a thread-safe TextWriter that prints to AvalonLog in Color
     /// for use as use System.Console.SetOut(textWriter)
     /// or System.Console.SetError(textWriter)
     member _.GetTextWriter(red, green, blue) = 
@@ -346,7 +346,7 @@ type AvalonLog () =
                             ,fun s -> printOrBuffer (s, true , br)
                             )
 
-    /// Returns a thread-safe Textwriter that prints to AvalonLog in Color
+    /// Returns a thread-safe TextWriter that prints to AvalonLog in Color
     /// for use as use System.Console.SetOut(textWriter)
     /// or System.Console.SetError(textWriter)
     member _.GetTextWriter(br:SolidColorBrush) = 
@@ -355,7 +355,7 @@ type AvalonLog () =
                             ,fun s -> printOrBuffer (s, true , fbr)
                             )
 
-    /// Returns a thread-safe Textwriter that only prints to AvalonLog
+    /// Returns a thread-safe TextWriter that only prints to AvalonLog
     /// if the predicate returns true for the string sent to the text writer.
     /// The provide Color will be used.
     member _.GetConditionalTextWriter(predicate:string->bool, br:SolidColorBrush) = 
@@ -365,7 +365,7 @@ type AvalonLog () =
                             )
 
 
-    /// Returns a thread-safe Textwriter that only prints to AvalonLog
+    /// Returns a thread-safe TextWriter that only prints to AvalonLog
     /// if the predicate returns true for the string sent to the text writer.
     /// The predicate can also be used for other side effects before printing.
     /// The provided red, green and blue Color values will be used will be used.
@@ -447,40 +447,40 @@ type AvalonLog () =
         printOrBuffer (s, true, customBrush)
 
    //--------------------------------------
-   // with F# string formating:
+   // with F# string formatting:
    //--------------------------------------
 
 
-    /// F# printf formating using the Brush provided.
+    /// F# printf formatting using the Brush provided.
     /// (without adding a new line at the end).
     member _.printfBrush (br:SolidColorBrush) s = 
         customBrush <- br
         Printf.kprintf (fun s -> printOrBuffer (s, false, customBrush))  s
 
-    /// F# printfn formating using the Brush provided.
+    /// F# printfn formatting using the Brush provided.
     /// Adds a new line at the end.
     member _.printfnBrush (br:SolidColorBrush) s = 
         customBrush <- br
         Printf.kprintf (fun s -> printOrBuffer (s, true, customBrush))  s
 
-    /// F# printf formating using red, green and blue color values (each between 0 and 255).
+    /// F# printf formatting using red, green and blue color values (each between 0 and 255).
     /// (without adding a new line at the end)
     member _.printfColor red green blue msg = 
         setCustomBrush (red,green,blue)
         Printf.kprintf (fun s -> printOrBuffer (s,false, customBrush ))  msg
 
-    /// F# printfn formating using red, green and blue color values (each between 0 and 255).
+    /// F# printfn formatting using red, green and blue color values (each between 0 and 255).
     /// Adds a new line at the end
     member _.printfnColor red green blue msg = 
         setCustomBrush (red,green,blue)
         Printf.kprintf (fun s -> printOrBuffer (s,true, customBrush ))  msg
 
-    /// F# printf formating using the last Brush or color provided.
+    /// F# printf formatting using the last Brush or color provided.
     /// (without adding a new line at the end
     member _.printfLastColor msg = 
         Printf.kprintf (fun s -> printOrBuffer (s, false, customBrush))  msg
 
-    /// F# printfn formating using the last Brush or color provided.
+    /// F# printfn formatting using the last Brush or color provided.
     /// Adds a new line at the end
     member _.printfnLastColor msg = 
         Printf.kprintf (fun s -> printOrBuffer (s, true, customBrush))  msg

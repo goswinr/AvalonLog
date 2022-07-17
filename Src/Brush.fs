@@ -33,19 +33,28 @@ module Brush =
 
     /// Adds bytes to each color channel to increase brightness, negative values to make darker.
     /// Result will be clamped between 0 and 255
+    [<Obsolete("Has a typo, use changeLuminance instead")>]
     let inline changeLuminace (amount:int) (col:Windows.Media.Color)= 
         let r = int col.R + amount |> clampToByte
         let g = int col.G + amount |> clampToByte
         let b = int col.B + amount |> clampToByte
         Color.FromArgb(col.A, r,g,b)
 
+    /// Adds bytes to each color channel to increase brightness, negative values to make darker.
+    /// Result will be clamped between 0 and 255
+    let inline changeLuminance (amount:int) (col:Windows.Media.Color)= 
+        let r = int col.R + amount |> clampToByte
+        let g = int col.G + amount |> clampToByte
+        let b = int col.B + amount |> clampToByte
+        Color.FromArgb(col.A, r,g,b)    
+
     /// Adds bytes to each color channel to increase brightness
     /// result will be clamped between 0 and 255
-    let brighter (amount:int) (br:SolidColorBrush)  = SolidColorBrush(changeLuminace amount br.Color)
+    let brighter (amount:int) (br:SolidColorBrush)  = SolidColorBrush(changeLuminance amount br.Color)
 
     /// Removes bytes from each color channel to increase darkness,
     /// result will be clamped between 0 and 255
-    let darker  (amount:int) (br:SolidColorBrush)  = SolidColorBrush(changeLuminace -amount br.Color)
+    let darker  (amount:int) (br:SolidColorBrush)  = SolidColorBrush(changeLuminance -amount br.Color)
 
 
 
