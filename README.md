@@ -69,6 +69,10 @@ Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoo
 
 ### Changelog
 `0.7.0`
+- use AvalonEditB `1.4.1`
+- fix typos in docstrings
+
+`0.7.0`
 - fix crash when Log has more than 1000k characters
 
 `0.6.0`

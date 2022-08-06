@@ -17,11 +17,12 @@
     <Product>AvalonLog</Product>
     <PackageId>AvalonLog</PackageId>
 
-    <Version>0.7.0</Version>
-    <AssemblyVersion>0.7.0</AssemblyVersion>
-    <FileVersion>0.7.0</FileVersion>
+    <Version>0.7.1</Version>
+    <AssemblyVersion>0.7.1</AssemblyVersion>
+    <FileVersion>0.7.1</FileVersion>
     <PackageReleaseNotes>
-		- fix crash when Log has more than 1000k characters
+		- use AvalonEditB 1.4.1
+    - fix typos in docstrings
 	</PackageReleaseNotes>
 
     <Authors>GoswinR</Authors>
@@ -49,7 +50,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvalonEditB" Version="1.4.0" />
+    <PackageReference Include="AvalonEditB" Version="1.4.1" />
     <PackageReference Update="FSharp.Core" Version="4.5.2" />
     <!-- otherwise the minimum FSharp.Core version would be forced by the SDK used for building it. this would be needlessly too high-->
 
