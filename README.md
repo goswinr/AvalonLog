@@ -10,6 +10,12 @@
 
 AvalonLog is a fast and thread-safe WPF text log viewer for colored text. Including F# printf formatting . Based on [AvalonEditB](https://github.com/goswinr/AvalonEditB). Works on .NET Framework 4.7.2 and .NET 6.0
 
+Thread-safe means that it can be called from any thread.
+
+Fast means 
+- it buffers repeated print calls and updates the view maximum 10 times per second. see ![source](https://github.com/goswinr/AvalonLog/blob/main/Src/AvalonLog.fs#L222)
+- Avalonedit is fast, the view is virtualized. It can easily handle thousands of lines. 
+
 ### Usage
 
 Here an short example for F# interactive in .NET Framework.
@@ -68,6 +74,10 @@ MIT
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
 ### Changelog
+
+`0.7.3`
+- update readme, fix typos
+
 `0.7.2`
 - fix typos in readme
 
