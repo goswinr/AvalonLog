@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net472;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net472;net7.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <LangVersion>preview</LangVersion>
 
@@ -17,10 +17,12 @@
     <Product>AvalonLog</Product>
     <PackageId>AvalonLog</PackageId>
 
-    <Version>0.7.2</Version>
-    <AssemblyVersion>0.7.2</AssemblyVersion>
-    <FileVersion>0.7.2</FileVersion>
+    <Version>0.8.2</Version>
+    <AssemblyVersion>0.8.2</AssemblyVersion>
+    <FileVersion>0.8.2</FileVersion>
     <PackageReleaseNotes>		
+      - net7.0
+      - AvalonEditB 1.5.1
       - update readme, fix typos
 	  </PackageReleaseNotes>
 
@@ -49,7 +51,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvalonEditB" Version="1.4.1" />
+    <PackageReference Include="AvalonEditB" Version="1.5.1" />
     <PackageReference Update="FSharp.Core" Version="4.5.2" />
     <!-- otherwise the minimum FSharp.Core version would be forced by the SDK used for building it. this would be needlessly too high-->
 

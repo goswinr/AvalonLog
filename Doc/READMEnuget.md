@@ -5,7 +5,7 @@
 
 ![logo](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Doc/logo400.png)
 
-AvalonLog is a fast and thread-safe WPF text log viewer for colored text. Including F# printf formatting . Based on [AvalonEditB](https://github.com/goswinr/AvalonEditB). Works on .NET Framework 4.7.2 and .NET 6.0
+AvalonLog is a fast and thread-safe WPF text log viewer for colored text. Including F# printf formatting . Based on [AvalonEditB](https://github.com/goswinr/AvalonEditB). Works on .NET Framework 4.7.2 and .NET 7.0
 
 Thread-safe means that it can be called from any thread.
 
@@ -64,7 +64,9 @@ Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoo
 
 ### Changelog 
 
-`0.7.3`
+`0.8.2`
+- net7.0
+- AvalonEditB 1.5.1
 - update readme, fix typos
 
 `0.7.2`
@@ -72,7 +74,7 @@ Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoo
 
 `0.7.1`
 - use AvalonEditB `1.4.1`
-- fix typos in docstrings
+- fix typos in doc-strings
 
 `0.7.0`
 - fix crash when Log has more than 1000k characters
@@ -90,4 +92,4 @@ Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoo
 - Rename `GetTextWriterIf` to `GetConditionalTextWriter`
 
  `0.3.1` 
-- Update Xml Docstrings
+- Update Xml Doc-strings
