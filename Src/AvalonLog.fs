@@ -27,13 +27,14 @@ type LogTextWriter(write,writeLine) =
         //if s.Contains "\u001b" then  writeLine ("eSc"+s) else writeLine ("?"+s) 
         writeLine (s)    
     
-    override _.WriteLine ()          = writeLine ("")
+    override _.WriteLine () = 
+        writeLine ("")
 
 
     (*
        trying to enable ANSI Control sequences for https://github.com/spectreconsole/spectre.console
 
-       but doesn't work yet ESC char seam to be swallowed by Console.SetOut to textWriter. see:
+       but doesn't work yet ESC char seams to be swallowed by Console.SetOut to textWriter. see:
 
        //https://stackoverflow.com/a/34078058/969070
        //let stdout = Console.OpenStandardOutput()
@@ -50,6 +51,7 @@ type LogTextWriter(write,writeLine) =
   
        let strWriter = l.AvalonLog.GetStreamWriter( LogColors.consoleOut) // Encoding.ASCII ??  
        Console.SetOut(strWriter)
+
 /// A TextWriter that writes using a function.
 /// To set Console.Out to a text writer get one via AvalonLog.GetTextWriter(red,green,blue)
 type LogStreamWriter(ms:MemoryStream,write,writeLine) = 
