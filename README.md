@@ -19,7 +19,7 @@ Fast means
 ### Usage
 
 Here an short example for F# interactive in .NET Framework.
-(for net6.0 you would have to use it in a project)
+(for net7.0 you would have to use it in a project)
 
 ```fsharp
 #r "PresentationCore"
@@ -74,6 +74,11 @@ MIT
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
 ### Changelog
+`0.9.0`
+- AvalonEditB 1.7.0
+
+`0.8.3`
+- AvalonEditB 1.6.0
 
 `0.8.2`
 - net7.0

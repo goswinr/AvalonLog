@@ -83,7 +83,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
         with get () = colorHighlight
         and  set v  = colorHighlight <- Brush.freeze v
 
-    /// To enable or disable this highlighter, on by default.
+    /// To enable or disable this highlighter, it is enabled by default.
     member _.IsEnabled
         with get () = isEnabled
         and  set on  = 
