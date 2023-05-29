@@ -54,7 +54,7 @@ public void AppendWithBrush(SolidColorBrush br, string s)
 and similar functions on the `AvalonLog` instance.
 ### Documentation
 
-See extracted API at [fuget.org](https://www.fuget.org/packages/AvalonLog/0.7.2/lib/net472/AvalonLog.dll/AvalonLog)  
+See extracted API at [fuget.org](https://www.fuget.org/packages/AvalonLog/0.9.1/lib/net472/AvalonLog.dll/AvalonLog)  
 
 ### License
 
@@ -63,6 +63,9 @@ MIT
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
 ### Changelog 
+`0.9.1`
+- AvalonEditB 1.8.0
+
 `0.9.0`
 - AvalonEditB 1.7.0
 
