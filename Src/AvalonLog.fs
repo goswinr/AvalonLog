@@ -108,8 +108,7 @@ type AvalonLog () =
         log.FontFamily <- FontFamily("Consolas")
         log.FontSize <- 14.0
         log.IsReadOnly <- true
-        log.Encoding <- Text.Encoding.Default // = UTF-16
-        log.HighlightCurrentLineNumber <- false
+        log.Encoding <- Text.Encoding.Default // = UTF-16        
         log.ShowLineNumbers  <- true
         log.Options.EnableHyperlinks <- true
         log.TextArea.SelectionCornerRadius <- 0.0
@@ -122,6 +121,10 @@ type AvalonLog () =
         // to highlight all instances of the selected word
         log.TextArea.TextView.LineTransformers.Add(hiLi)
         log.TextArea.SelectionChanged.Add hiLi.SelectionChangedDelegate
+
+        match log.TextArea.LeftMargins.[0]  with  // the line number margin
+        | :? Editing.LineNumberMargin as lm -> lm.HighlightCurrentLineNumber <- false // disable highlighting of current line number
+        | _ -> ()
 
         defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze) // just to be sure they are the same
         //log.Foreground.Changed.Add ( fun _ -> LogColors.consoleOut <- (log.Foreground.Clone() :?> SolidColorBrush |> freeze)) // this event attaching can't  be done because it is already frozen
