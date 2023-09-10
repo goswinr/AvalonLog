@@ -63,6 +63,10 @@ MIT
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
 ### Changelog 
+`0.11.0`
+- disable replace in Log
+- AvalonEditB 2.1.0
+
 `0.10.0`
 - AvalonEditB 2.0.0
 

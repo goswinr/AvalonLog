@@ -100,6 +100,8 @@ type AvalonLog () =
     let hiLi = new SelectedTextHighlighter(log)
     let colo = new ColorizingTransformer(log, offsetColors, defaultBrush)
 
+    let searchPanel = Search.SearchPanel.Install(log, enableReplace = false)  // disable replace via search replace dialog
+    
     do
         base.Content <- log  //nest Avalonedit inside a simple ContentControl to hide most of its functionality
 
@@ -107,12 +109,12 @@ type AvalonLog () =
         log.FontSize <- 14.0
         log.IsReadOnly <- true
         log.Encoding <- Text.Encoding.Default // = UTF-16
+        log.HighlightCurrentLineNumber <- false
         log.ShowLineNumbers  <- true
         log.Options.EnableHyperlinks <- true
         log.TextArea.SelectionCornerRadius <- 0.0
         log.TextArea.SelectionBorder <- null
         log.TextArea.TextView.LinkTextForegroundBrush <- Brushes.Blue |> Brush.freeze //Hyper-links color
-
 
         log.TextArea.TextView.LineTransformers.Add(colo) // to actually draw colored text
         log.TextArea.SelectionChanged.Add colo.SelectionChangedDelegate // to exclude selected text from being colored
@@ -120,8 +122,6 @@ type AvalonLog () =
         // to highlight all instances of the selected word
         log.TextArea.TextView.LineTransformers.Add(hiLi)
         log.TextArea.SelectionChanged.Add hiLi.SelectionChangedDelegate
-
-        Search.SearchPanel.Install(log) |> ignoreObj //TODO disable search and replace if using custom build?
 
         defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze) // just to be sure they are the same
         //log.Foreground.Changed.Add ( fun _ -> LogColors.consoleOut <- (log.Foreground.Clone() :?> SolidColorBrush |> freeze)) // this event attaching can't  be done because it is already frozen
@@ -165,7 +165,7 @@ type AvalonLog () =
     /// Optionally adds new line at end.
     /// Sets line color on LineColors dictionary for DocumentColorizingTransformer.
     /// printOrBuffer (txt:string, addNewLine:bool, typ:SolidColorBrush)
-    let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence characters and don't print or count them, how many are skiped by avaedit during Text.Append??
+    let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence characters and don't print or count them, how many are skipped by avaedit during Text.Append??
         if stillLessThanMaxChars && (txt.Length <> 0 || addNewLine) then
             lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
                 // Change color if needed:
@@ -208,7 +208,7 @@ type AvalonLog () =
                 async {
                     let k = Interlocked.Increment printCallsCounter
                     do! Async.Sleep 100
-                    while dontPrintJustBuffer do // wait till dont PrintJustBuffer is set true from end of this.Clear() call
+                    while dontPrintJustBuffer do // wait till don't PrintJustBuffer is set true from end of this.Clear() call
                         do! Async.Sleep 100
                     if !printCallsCounter = k  then //it is the last call for 100 ms
                         // on why using Invoke: https://stackoverflow.com/a/19009579/969070
@@ -271,6 +271,9 @@ type AvalonLog () =
 
     /// Get the current Selection
     member _.Selection = log.TextArea.Selection
+
+    /// The SearchPanel from AvalonEditB
+    member _. SearchPanel = searchPanel
 
     /// Use true to enable Line Wrap.
     /// setting false will enable Horizontal ScrollBar Visibility

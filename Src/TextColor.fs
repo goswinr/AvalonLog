@@ -16,7 +16,7 @@ type internal NewColor =
 
     /// Does binary search to find an offset that is equal or smaller than currOff
     static member findCurrentInList (cs:ResizeArray<NewColor>) currOff :NewColor = 
-        //  cs has a least one item that is {off = -1 ; brush=null}, set in Avalonlog constructor
+        //  cs has a least one item that is {off = -1 ; brush=null}, set in AvalonLog constructor
         
         let last = cs.Count-1  //TODO: is it possible that count increases while iterating?
         let rec find lo hi = 
