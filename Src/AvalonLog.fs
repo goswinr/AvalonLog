@@ -254,8 +254,8 @@ type AvalonLog () =
                     //    } |> Async.StartImmediate
 
      //-----------------------------------------------------------
-     //----------------------exposed AvalonEdit members:------------------------------------------
-     //------------------------------------------------------------
+     //----------------------exposed AvalonEdit members:----------
+     //-----------------------------------------------------------
 
 
     member  _.VerticalScrollBarVisibility   with get() = log.VerticalScrollBarVisibility     and set v = log.VerticalScrollBarVisibility <- v
@@ -276,7 +276,7 @@ type AvalonLog () =
     member _.Selection = log.TextArea.Selection
 
     /// The SearchPanel from AvalonEditB
-    member _. SearchPanel = searchPanel
+    member _.SearchPanel = searchPanel
 
     /// Use true to enable Line Wrap.
     /// setting false will enable Horizontal ScrollBar Visibility
@@ -404,7 +404,7 @@ type AvalonLog () =
     *)
 
     //--------------------------------------
-    // Append string:
+    //--------- Append string: -------------
     //--------------------------------------
 
     /// Print string using default color (Black)
@@ -429,7 +429,7 @@ type AvalonLog () =
         printOrBuffer (s, false, customBrush)
 
     //--------------------------------------
-    // AppendLine string:
+    //--------- AppendLine string:----------
     //--------------------------------------
 
     /// Print string using default color (Black)
@@ -455,7 +455,7 @@ type AvalonLog () =
         printOrBuffer (s, true, customBrush)
 
    //--------------------------------------
-   // with F# string formatting:
+   //--- with F# string formatting:--------
    //--------------------------------------
 
 

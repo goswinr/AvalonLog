@@ -17,17 +17,16 @@
     <Product>AvalonLog</Product>
     <PackageId>AvalonLog</PackageId>
 
-    <Version>0.11.0</Version>
-    <AssemblyVersion>0.11.0</AssemblyVersion>
-    <FileVersion>0.11.0</FileVersion>
+    <Version>0.12.0</Version>
+    <AssemblyVersion>0.12.0</AssemblyVersion>
+    <FileVersion>0.12.0</FileVersion>
     <PackageReleaseNotes>
-      - disable replace in Log
-      - AvalonEditB 2.1.0
+      - AvalonEditB 2.2.0
 	  </PackageReleaseNotes>
 
     <Authors>GoswinR</Authors>
     <Copyright>Goswin Rothenthal 2021</Copyright>
-    <PackageDescription>A fast and thread-safe WPF text viewer for colored text. Including F# printf formatting . Based on AvalonEdit</PackageDescription>
+    <PackageDescription>A fast and thread-safe WPF text viewer for colored text. Including F# printf formatting. Based on AvalonEdit</PackageDescription>
     <Description>A fast and thread-safe WPF text viewer for colored text. Including F# printf formatting. Based on AvalonEdit</Description>
     
     <Configuration>Release</Configuration>
@@ -50,9 +49,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvalonEditB" Version="2.1.0" />
-    <PackageReference Update="FSharp.Core" Version="4.5.2" />
-    <!-- otherwise the minimum FSharp.Core version would be forced by the SDK used for building it. this would be needlessly too high-->
+    <PackageReference Include="AvalonEditB" Version="2.2.0" />
+    <PackageReference Update="FSharp.Core" Version="4.5.2" />   <!-- otherwise the minimum FSharp.Core version would be forced by the SDK used for building it. this would be needlessly too high-->
 
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
     <!-- https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#controlling-dependency-assets -->
