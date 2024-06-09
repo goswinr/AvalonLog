@@ -1,6 +1,6 @@
 # AvalonLog
 
-![code size](https://img.shields.io/github/languages/code-size/goswinr/AvalonLog.svg) 
+![code size](https://img.shields.io/github/languages/code-size/goswinr/AvalonLog.svg)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 ![logo](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Doc/logo400.png)
@@ -9,9 +9,9 @@ AvalonLog is a fast and thread-safe WPF text log viewer for colored text. Includ
 
 Thread-safe means that it can be called from any thread.
 
-Fast means 
+Fast means
 - it buffers repeated print calls and updates the view maximum 10 times per second. see ![source](https://github.com/goswinr/AvalonLog/blob/main/Src/AvalonLog.fs#L222)
-- Avalonedit is fast, the view is virtualized. It can easily handle thousands of lines.  
+- Avalonedit is fast, the view is virtualized. It can easily handle thousands of lines.
 
 ### Usage
 
@@ -40,21 +40,21 @@ blue  "World!"
 red   "The answer"
 green " is %d." (40 + 2)
 
-Application().Run(Window(Content=log))  // show WPF window 
+Application().Run(Window(Content=log))  // show WPF window
 ```
-this will produce 
+this will produce
 
 ![WPF window](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Doc/HelloWorld.png)
 
 
-For C# there is  
+For C# there is
 ```csharp
 public void AppendWithBrush(SolidColorBrush br, string s)
 ```
 and similar functions on the `AvalonLog` instance.
 ### Documentation
 
-See extracted API at [fuget.org](https://www.fuget.org/packages/AvalonLog/0.12.0/lib/net472/AvalonLog.dll/AvalonLog)  
+See extracted API at [fuget.org](https://www.fuget.org/packages/AvalonLog/0.12.0/lib/net472/AvalonLog.dll/AvalonLog)
 
 ### License
 
@@ -62,7 +62,9 @@ MIT
 
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
-### Changelog 
+### Changelog
+`0.13.0`
+- AvalonEditB 2.3.0
 
 `0.12.0`
 - AvalonEditB 2.2.0
@@ -107,8 +109,8 @@ Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoo
 - fix typos in docstring
 
 `0.4.0`
-- Update to AvalonEditB `1.2.0` 
+- Update to AvalonEditB `1.2.0`
 - Rename `GetTextWriterIf` to `GetConditionalTextWriter`
 
- `0.3.1` 
+ `0.3.1`
 - Update Xml Doc-strings
