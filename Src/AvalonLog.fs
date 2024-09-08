@@ -15,19 +15,19 @@ open AvalonEditB.Document
 
 /// A TextWriter that writes using a function.
 /// To set Console.Out to a text writer get one via AvalonLog.GetTextWriter(red,green,blue)
-type LogTextWriter(write,writeLine) = 
+type LogTextWriter(write,writeLine) =
     inherit TextWriter()
     override _.Encoding = Text.Encoding.Default // ( UTF-16 )
-    
-    override _.Write     (s:string)  = 
-        //if s.Contains "\u001b" then  write ("esc"+s) else write ("?"+s) //debugging for using  spectre ?? https://github.com/spectreconsole/spectre.console/discussions/573            
-        write (s) 
-    
+
+    override _.Write     (s:string)  =
+        //if s.Contains "\u001b" then  write ("esc"+s) else write ("?"+s) //debugging for using  spectre ?? https://github.com/spectreconsole/spectre.console/discussions/573
+        write (s)
+
     override _.WriteLine (s:string)  = // actually never used in F# printfn, but maybe buy other too using the console or error out , see  https://github.com/dotnet/fsharp/issues/3712
-        //if s.Contains "\u001b" then  writeLine ("eSc"+s) else writeLine ("?"+s) 
-        writeLine (s)    
-    
-    override _.WriteLine () = 
+        //if s.Contains "\u001b" then  writeLine ("eSc"+s) else writeLine ("?"+s)
+        writeLine (s)
+
+    override _.WriteLine () =
         writeLine ("")
 
 
@@ -38,31 +38,31 @@ type LogTextWriter(write,writeLine) =
 
        //https://stackoverflow.com/a/34078058/969070
        //let stdout = Console.OpenStandardOutput()
-       //let con = new StreamWriter(stdout, Encoding.ASCII)      
-       
-       The .Net Console.WriteLine uses an internal __ConsoleStream that checks if the Console.Out is as file handle or a console handle. 
+       //let con = new StreamWriter(stdout, Encoding.ASCII)
+
+       The .Net Console.WriteLine uses an internal __ConsoleStream that checks if the Console.Out is as file handle or a console handle.
        By default it uses a console handle and therefor writes to the console by calling WriteConsoleW. In the remarks you find:
-       
-       Although an application can use WriteConsole in ANSI mode to write ANSI characters, consoles do not support ANSI escape sequences. 
+
+       Although an application can use WriteConsole in ANSI mode to write ANSI characters, consoles do not support ANSI escape sequences.
        However, some functions provide equivalent functionality. For more information, see SetCursorPos, SetConsoleTextAttribute, and GetConsoleCursorInfo.
-       
-       To write the bytes directly to the console without WriteConsoleW interfering a simple file-handle/stream will do which is achieved by calling OpenStandardOutput. 
+
+       To write the bytes directly to the console without WriteConsoleW interfering a simple file-handle/stream will do which is achieved by calling OpenStandardOutput.
        By wrapping that stream in a StreamWriter so we can set it again with Console.SetOut we are done. The byte sequences are send to the OutputStream and picked up by AnsiCon.
-  
-       let strWriter = l.AvalonLog.GetStreamWriter( LogColors.consoleOut) // Encoding.ASCII ??  
+
+       let strWriter = l.AvalonLog.GetStreamWriter( LogColors.consoleOut) // Encoding.ASCII ??
        Console.SetOut(strWriter)
 
 /// A TextWriter that writes using a function.
 /// To set Console.Out to a text writer get one via AvalonLog.GetTextWriter(red,green,blue)
-type LogStreamWriter(ms:MemoryStream,write,writeLine) = 
+type LogStreamWriter(ms:MemoryStream,write,writeLine) =
     inherit StreamWriter(ms)
     override _.Encoding = Text.Encoding.Default // ( UTF-16 )
-    override _.Write (s:string) :  unit = 
-        if s.Contains "\u001b" then  write ("esc"+s) else write ("?"+s) //use specter ?? https://github.com/spectreconsole/spectre.console/discussions/573            
-        //write (s) 
+    override _.Write (s:string) :  unit =
+        if s.Contains "\u001b" then  write ("esc"+s) else write ("?"+s) //use specter ?? https://github.com/spectreconsole/spectre.console/discussions/573
+        //write (s)
     override _.WriteLine (s:string)  :  unit = // actually never used in F# printfn, but maybe buy other too using the console or error out , see  https://github.com/dotnet/fsharp/issues/3712
-        if s.Contains "\u001b" then  writeLine ("eSc"+s) else writeLine ("?"+s) 
-        //writeLine (s)    
+        if s.Contains "\u001b" then  writeLine ("eSc"+s) else writeLine ("?"+s)
+        //writeLine (s)
     override _.WriteLine ()          = writeLine ("")
        *)
 
@@ -73,7 +73,7 @@ type LogStreamWriter(ms:MemoryStream,write,writeLine) =
 /// <remarks>Use the hidden member AvalonEdit if you need to access the underlying TextEditor class from AvalonEdit for styling.
 /// Don't append or change the AvalonEdit.Text property directly. This will mess up the coloring.
 /// Only use the printfn and Append functions of this class.</remarks>
-type AvalonLog () = 
+type AvalonLog () =
     inherit ContentControl()  // the most simple and generic type of UIelement container, like a <div> in html
 
     /// Stores all the locations where a new color starts.
@@ -88,7 +88,7 @@ type AvalonLog () =
     /// Used for printing with custom rgb values
     let mutable customBrush     = Brushes.Black     |> freeze   // will be changed anyway on first call
 
-    let setCustomBrush(red,green,blue) = 
+    let setCustomBrush(red,green,blue) =
         let r = clampToByte red
         let g = clampToByte green
         let b = clampToByte blue
@@ -101,14 +101,14 @@ type AvalonLog () =
     let colo = new ColorizingTransformer(log, offsetColors, defaultBrush)
 
     let searchPanel = Search.SearchPanel.Install(log, enableReplace = false)  // disable replace via search replace dialog
-    
+
     do
         base.Content <- log  //nest Avalonedit inside a simple ContentControl to hide most of its functionality
 
         log.FontFamily <- FontFamily("Consolas")
         log.FontSize <- 14.0
         log.IsReadOnly <- true
-        log.Encoding <- Text.Encoding.Default // = UTF-16        
+        log.Encoding <- Text.Encoding.Default // = UTF-16
         log.ShowLineNumbers  <- true
         log.Options.EnableHyperlinks <- true
         log.TextArea.SelectionCornerRadius <- 0.0
@@ -147,20 +147,20 @@ type AvalonLog () =
     // https://github.com/icsharpcode/AvalonEdit/issues/226
     //-----------------------------------------------------------------------------------
 
-    let getBufferText () = 
+    let getBufferText () =
         let txt = buffer.ToString()
         buffer.Clear()  |> ignoreObj
         txt
 
     /// must be called in sync
-    let printToLog() = 
+    let printToLog() =
         let txt = lock buffer getBufferText //lock for safe access
         if txt.Length > 0 then //might be empty from calls during dont PrintJustBuffer = true
             log.AppendText(txt)     // TODO is it possible that avalonedit skips adding some escape ANSI characters to document?? then docLength could be out of sync !! TODO
             log.ScrollToEnd()
             if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712
             stopWatch.Restart()
-    
+
     let newLine = Environment.NewLine
 
 
@@ -187,20 +187,20 @@ type AvalonLog () =
 
             // check if total text in log  is already to big , print it and then stop printing
             if docLength > maxCharsInLog then // needed when log gets piled up with exception messages form Avalonedit rendering pipeline.
-                stillLessThanMaxChars <- false                
-                log.Dispatcher.Invoke(printToLog) 
+                stillLessThanMaxChars <- false
+                log.Dispatcher.Invoke(printToLog)
                 let itsOverTxt = sprintf "%s%s  **** STOP OF LOGGING **** Log has more than %d characters! Clear Log view first %s%s%s%s " newLine newLine maxCharsInLog  newLine newLine  newLine newLine
-                lock buffer (fun () ->  
+                lock buffer (fun () ->
                      offsetColors.Add { off = docLength; brush = Brushes.Red |> freeze}
                      buffer.AppendLine(itsOverTxt)  |> ignoreObj
                      docLength <- docLength + itsOverTxt.Length
                     )
                 log.Dispatcher.Invoke(printToLog)
-                    
+
                 //previous version: (suffers from race condition where Async.SwitchToContext SyncAvalonLog.context does not work)
                 //async {
                 //    do! Async.SwitchToContext SyncAvalonLog.context
-                //    printToLog()// runs with a lock too                    
+                //    printToLog()// runs with a lock too
                 //    log.AppendText(sprintf "%s%s  *** STOP OF LOGGING *** Log has more than %d characters! clear Log view first" newLine newLine maxCharsInLog)
                 //    log.ScrollToEnd()
                 //    log.ScrollToEnd() // call twice because of https://github.com/icsharpcode/AvalonEdit/issues/226
@@ -283,7 +283,7 @@ type AvalonLog () =
     /// setting true will disable Horizontal ScrollBar Visibility
     member _.WordWrap
         with get() = log.WordWrap
-        and set v = 
+        and set v =
             if v then
                 log.WordWrap         <- true
                 log.HorizontalScrollBarVisibility <- ScrollBarVisibility.Disabled
@@ -319,14 +319,14 @@ type AvalonLog () =
     /// Clear all Text. (thread-safe)
     /// The Color of the last print will still be remembered
     /// e.g. for log.AppendWithLastColor(..)
-    member _.Clear() :unit = 
+    member _.Clear() :unit =
         lock buffer (fun () ->
             dontPrintJustBuffer <- true
             buffer.Clear() |>  ignoreObj
             docLength <- 0
             prevMsgBrush <- null
             stillLessThanMaxChars <- true
-            printCallsCounter := 0L            
+            printCallsCounter := 0L
             )
 
         // log.Dispatcher.Invoke needed.
@@ -339,7 +339,6 @@ type AvalonLog () =
             //log.SelectionLength <- 0
             //log.SelectionStart <- 0
             defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze)   // TODO or remember custom brush ?
-            log.TextArea.TextView.linesCollapsedVisualPosOffThrowCount <- 0 // custom property in AvalonEditB to avoid throwing too many exceptions. set 0 so exceptions appear again
             stopWatch.Restart() // works async too
             dontPrintJustBuffer <- false // this is important to release pending prints stuck in while loop in printOrBuffer()
             )
@@ -348,7 +347,7 @@ type AvalonLog () =
     /// Returns a thread-safe TextWriter that prints to AvalonLog in Color
     /// for use as use System.Console.SetOut(textWriter)
     /// or System.Console.SetError(textWriter)
-    member _.GetTextWriter(red, green, blue) = 
+    member _.GetTextWriter(red, green, blue) =
         let br = Brush.ofRGB red green blue
         new LogTextWriter   (fun s -> printOrBuffer (s, false, br)
                             ,fun s -> printOrBuffer (s, true , br)
@@ -357,7 +356,7 @@ type AvalonLog () =
     /// Returns a thread-safe TextWriter that prints to AvalonLog in Color
     /// for use as use System.Console.SetOut(textWriter)
     /// or System.Console.SetError(textWriter)
-    member _.GetTextWriter(br:SolidColorBrush) = 
+    member _.GetTextWriter(br:SolidColorBrush) =
         let fbr = br|> freeze
         new LogTextWriter   (fun s -> printOrBuffer (s, false, fbr)
                             ,fun s -> printOrBuffer (s, true , fbr)
@@ -366,7 +365,7 @@ type AvalonLog () =
     /// Returns a thread-safe TextWriter that only prints to AvalonLog
     /// if the predicate returns true for the string sent to the text writer.
     /// The provide Color will be used.
-    member _.GetConditionalTextWriter(predicate:string->bool, br:SolidColorBrush) = 
+    member _.GetConditionalTextWriter(predicate:string->bool, br:SolidColorBrush) =
         let fbr = br|> freeze
         new LogTextWriter   (fun s -> if predicate s then printOrBuffer (s, false, fbr)
                             ,fun s -> if predicate s then printOrBuffer (s, true , fbr)
@@ -378,7 +377,7 @@ type AvalonLog () =
     /// The predicate can also be used for other side effects before printing.
     /// The provided red, green and blue Color values will be used will be used.
     /// Integers will be clamped to be between 0 and 255
-    member _.GetConditionalTextWriter(predicate:string->bool, red, green, blue) = 
+    member _.GetConditionalTextWriter(predicate:string->bool, red, green, blue) =
         let br = Brush.ofRGB red green blue
         new LogTextWriter   (fun s -> if predicate s then printOrBuffer (s, false, br)
                             ,fun s -> if predicate s then printOrBuffer (s, true , br)
@@ -388,14 +387,14 @@ type AvalonLog () =
     part of trying to enable ANSI Control sequences for https://github.com/spectreconsole/spectre.console
     https://stackoverflow.com/a/34078058/969070
 
-    member _.GetStreamWriter(br:SolidColorBrush) = 
+    member _.GetStreamWriter(br:SolidColorBrush) =
         let fbr = br|> freeze
         new LogStreamWriter (new MemoryStream()
                             ,fun s -> printOrBuffer (s, false, fbr)
                             ,fun s -> printOrBuffer (s, true , fbr)
                             )
-    
-    member _.GetStreamWriter(red, green, blue) = 
+
+    member _.GetStreamWriter(red, green, blue) =
         let br = Brush.ofRGB red green blue
         new LogStreamWriter (new MemoryStream()
                             ,fun s -> printOrBuffer (s, false, br)
@@ -408,24 +407,24 @@ type AvalonLog () =
     //--------------------------------------
 
     /// Print string using default color (Black)
-    member _.Append (s) = 
+    member _.Append (s) =
         printOrBuffer (s, false, defaultBrush )
 
     /// Print string using red, green and blue color values (each between 0 and 255).
     /// (without adding a new line at the end).
-    member _.AppendWithColor (red, green, blue, s) = 
+    member _.AppendWithColor (red, green, blue, s) =
         setCustomBrush (red,green,blue)
         printOrBuffer (s, false, customBrush )
 
     /// Print string using the Brush provided.
     /// (without adding a new line at the end).
-    member _.AppendWithBrush (br:SolidColorBrush, s) = 
+    member _.AppendWithBrush (br:SolidColorBrush, s) =
         customBrush <- br
         printOrBuffer (s, false, customBrush )
 
     /// Print string using the last Brush or color provided.
     /// (without adding a new line at the end
-    member _.AppendWithLastColor (s) = 
+    member _.AppendWithLastColor (s) =
         printOrBuffer (s, false, customBrush)
 
     //--------------------------------------
@@ -434,24 +433,24 @@ type AvalonLog () =
 
     /// Print string using default color (Black)
     /// Adds a new line at the end
-    member _.AppendLine (s) = 
+    member _.AppendLine (s) =
         printOrBuffer (s, true, defaultBrush )
 
     /// Print string using red, green and blue color values (each between 0 and 255).
     /// Adds a new line at the end
-    member _.AppendLineWithColor (red, green, blue, s) = 
+    member _.AppendLineWithColor (red, green, blue, s) =
         setCustomBrush (red,green,blue)
         printOrBuffer (s, true, customBrush )
 
     /// Print string using the Brush provided.
     /// Adds a new line at the end.
-    member _.AppendLineWithBrush (br:SolidColorBrush, s) = 
+    member _.AppendLineWithBrush (br:SolidColorBrush, s) =
         customBrush <- br
         printOrBuffer (s, true, customBrush)
 
     /// Print string using the last Brush or color provided.
     /// Adds a new line at the end
-    member _.AppendLineWithLastColor (s) = 
+    member _.AppendLineWithLastColor (s) =
         printOrBuffer (s, true, customBrush)
 
    //--------------------------------------
@@ -461,34 +460,34 @@ type AvalonLog () =
 
     /// F# printf formatting using the Brush provided.
     /// (without adding a new line at the end).
-    member _.printfBrush (br:SolidColorBrush) s = 
+    member _.printfBrush (br:SolidColorBrush) s =
         customBrush <- br
         Printf.kprintf (fun s -> printOrBuffer (s, false, customBrush))  s
 
     /// F# printfn formatting using the Brush provided.
     /// Adds a new line at the end.
-    member _.printfnBrush (br:SolidColorBrush) s = 
+    member _.printfnBrush (br:SolidColorBrush) s =
         customBrush <- br
         Printf.kprintf (fun s -> printOrBuffer (s, true, customBrush))  s
 
     /// F# printf formatting using red, green and blue color values (each between 0 and 255).
     /// (without adding a new line at the end)
-    member _.printfColor red green blue msg = 
+    member _.printfColor red green blue msg =
         setCustomBrush (red,green,blue)
         Printf.kprintf (fun s -> printOrBuffer (s,false, customBrush ))  msg
 
     /// F# printfn formatting using red, green and blue color values (each between 0 and 255).
     /// Adds a new line at the end
-    member _.printfnColor red green blue msg = 
+    member _.printfnColor red green blue msg =
         setCustomBrush (red,green,blue)
         Printf.kprintf (fun s -> printOrBuffer (s,true, customBrush ))  msg
 
     /// F# printf formatting using the last Brush or color provided.
     /// (without adding a new line at the end
-    member _.printfLastColor msg = 
+    member _.printfLastColor msg =
         Printf.kprintf (fun s -> printOrBuffer (s, false, customBrush))  msg
 
     /// F# printfn formatting using the last Brush or color provided.
     /// Adds a new line at the end
-    member _.printfnLastColor msg = 
+    member _.printfnLastColor msg =
         Printf.kprintf (fun s -> printOrBuffer (s, true, customBrush))  msg

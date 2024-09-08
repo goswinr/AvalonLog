@@ -5,7 +5,7 @@
 
 ![logo](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Doc/logo400.png)
 
-AvalonLog is a fast and thread-safe WPF text log viewer for colored text. Including F# printf formatting. Based on [AvalonEditB](https://github.com/goswinr/AvalonEditB). Works on .NET Framework 4.7.2 and .NET 7.0
+AvalonLog is a fast and thread-safe WPF text log viewer for colored text. Including F# printf formatting. Based on [AvalonEditB](https://github.com/goswinr/AvalonEditB). Works on .NET Framework 4.7.2 and .NET 6.0
 
 Thread-safe means that it can be called from any thread.
 
@@ -54,7 +54,7 @@ public void AppendWithBrush(SolidColorBrush br, string s)
 and similar functions on the `AvalonLog` instance.
 ### Documentation
 
-See extracted API at [fuget.org](https://www.fuget.org/packages/AvalonLog/0.12.0/lib/net472/AvalonLog.dll/AvalonLog)
+See extracted API at [fuget.org](https://www.fuget.org/packages/AvalonLog/0.14.0/lib/net472/AvalonLog.dll/AvalonLog)
 
 ### License
 
@@ -63,6 +63,10 @@ MIT
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
 ### Changelog
+
+`0.14.0`
+- AvalonEditB 2.4.0
+
 `0.13.0`
 - AvalonEditB 2.3.0
 
