@@ -98,14 +98,14 @@ type AvalonLog () =
 
     let log =  new TextEditor()
     let hiLi = new SelectedTextHighlighter(log)
-    let colo = new ColorizingTransformer(log, offsetColors, defaultBrush)
+    let color = new ColorizingTransformer(log, offsetColors, defaultBrush)
 
     let searchPanel = Search.SearchPanel.Install(log, enableReplace = false)  // disable replace via search replace dialog
 
     do
         base.Content <- log  //nest Avalonedit inside a simple ContentControl to hide most of its functionality
 
-        log.FontFamily <- FontFamily("Consolas")
+        log.FontFamily <- FontFamily("Cascadia Code") // default font
         log.FontSize <- 14.0
         log.IsReadOnly <- true
         log.Encoding <- Text.Encoding.Default // = UTF-16
@@ -115,8 +115,8 @@ type AvalonLog () =
         log.TextArea.SelectionBorder <- null
         log.TextArea.TextView.LinkTextForegroundBrush <- Brushes.Blue |> Brush.freeze //Hyper-links color
 
-        log.TextArea.TextView.LineTransformers.Add(colo) // to actually draw colored text
-        log.TextArea.SelectionChanged.Add colo.SelectionChangedDelegate // to exclude selected text from being colored
+        log.TextArea.TextView.LineTransformers.Add(color) // to actually draw colored text
+        log.TextArea.SelectionChanged.Add color.SelectionChangedDelegate // to exclude selected text from being colored
 
         // to highlight all instances of the selected word
         log.TextArea.TextView.LineTransformers.Add(hiLi)
@@ -138,7 +138,9 @@ type AvalonLog () =
     let mutable stillLessThanMaxChars = true
     let mutable dontPrintJustBuffer = false // for use in this.Clear() to make sure a print after a clear does not get swallowed
 
+    let mutable printInterval : int64 = 50L //100L
 
+    let mutable lastPrintDelay : int = 30 //70
 
     //-----------------------------------------------------------------------------------
     // The below functions are trying to work around double UI update in printfn for better UI performance,
@@ -155,7 +157,7 @@ type AvalonLog () =
     /// must be called in sync
     let printToLog() =
         let txt = lock buffer getBufferText //lock for safe access
-        if txt.Length > 0 then //might be empty from calls during dont PrintJustBuffer = true
+        if txt.Length > 0 then //might be empty from calls during don't PrintJustBuffer = true
             log.AppendText(txt)     // TODO is it possible that avalonedit skips adding some escape ANSI characters to document?? then docLength could be out of sync !! TODO
             log.ScrollToEnd()
             if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712
@@ -168,7 +170,7 @@ type AvalonLog () =
     /// Optionally adds new line at end.
     /// Sets line color on LineColors dictionary for DocumentColorizingTransformer.
     /// printOrBuffer (txt:string, addNewLine:bool, typ:SolidColorBrush)
-    let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence characters and don't print or count them, how many are skipped by avaedit during Text.Append??
+    let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence characters and don't print or count them, how many are skipped by ava-edit during Text.Append??
         if stillLessThanMaxChars && (txt.Length <> 0 || addNewLine) then
             lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
                 // Change color if needed:
@@ -210,10 +212,10 @@ type AvalonLog () =
             elif dontPrintJustBuffer then // wait really long before printing
                 async {
                     let k = Interlocked.Increment printCallsCounter
-                    do! Async.Sleep 100
+                    do! Async.Sleep 50
                     while dontPrintJustBuffer do // wait till don't PrintJustBuffer is set true from end of this.Clear() call
-                        do! Async.Sleep 100
-                    if !printCallsCounter = k  then //it is the last call for 100 ms
+                        do! Async.Sleep 50
+                    if printCallsCounter.Value = k  then //it is the last call for 100 ms
                         // on why using Invoke: https://stackoverflow.com/a/19009579/969070
                         log.Dispatcher.Invoke(printToLog)
                     } |> Async.StartImmediate
@@ -221,10 +223,10 @@ type AvalonLog () =
             // normal case:
             else
                 // check the two criteria for actually printing
-                // PRINT CASE 1: since the last printing call more than 100 ms have elapsed. this case is used if a lot of print calls arrive at the log for a more than 100 ms.
-                // PRINT CASE 2, wait 70 ms and print if nothing else has been added to the buffer during the last 70 ms
+                // PRINT CASE 1: since the last printing call more than 100 ms have elapsed. this case is used if a lot of print calls arrive at the log for a more than printInterval (100 ms.)
+                // PRINT CASE 2, wait 70 ms and print if nothing else has been added to the buffer during the last lastPrintDelay (70 ms)
 
-                if stopWatch.ElapsedMilliseconds > 100L  then // PRINT CASE 1: only add to document every 100ms
+                if stopWatch.ElapsedMilliseconds > printInterval  then // PRINT CASE 1: only add to document every printInterval (100ms)
                     // printToLog() will also reset stopwatch.
                     // on why using Invoke: https://stackoverflow.com/a/19009579/969070
                     log.Dispatcher.Invoke( printToLog) // TODO a bit faster probably and less verbose than async here but would this propagate exceptions too ?
@@ -240,10 +242,10 @@ type AvalonLog () =
                     let mutable timer :option<Timer> = None
                     let k = Interlocked.Increment printCallsCounter
                     let action =  TimerCallback(fun _ ->
-                        if !printCallsCounter = k  then  log.Dispatcher.Invoke(printToLog) //PRINT CASE 2, it is the last call for 70 ms, there has been no other Increment to printCallsCounter
+                        if printCallsCounter.Value = k  then  log.Dispatcher.Invoke(printToLog) //PRINT CASE 2, it is the last call for 70 ms, there has been no other Increment to printCallsCounter
                         if timer.IsSome then timer.Value.Dispose() // dispose inside callback, like in Async.Sleep
                         )
-                    timer <- Some (new Threading.Timer(action, null, dueTime = 70 , period = -1))
+                    timer <- Some (new Threading.Timer(action, null, dueTime = lastPrintDelay , period = -1))
 
                     // previous version:
                     //async {
@@ -265,6 +267,18 @@ type AvalonLog () =
     //member  _.Encoding         with get() = log.Encoding                    and set v = log.Encoding <- v
     member  _.ShowLineNumbers  with get() = log.ShowLineNumbers             and set v = log.ShowLineNumbers <- v
     member  _.EnableHyperlinks with get() = log.Options.EnableHyperlinks    and set v = log.Options.EnableHyperlinks  <- v
+
+    /// the delay in milliseconds after the last print call before the log is printed to the screen
+    /// should be less than the printInterval
+    member _.LastPrintDelay
+        with get() = lastPrintDelay
+        and set v = lastPrintDelay <- v
+
+    /// the time in milliseconds between two print calls to the log
+    /// any print calls arriving during this time will be buffered and printed in one go after the printInterval
+    member _.PrintInterval
+        with get() = printInterval
+        and set v = printInterval <- v
 
     /// Get all text in this AvalonLog
     member _.Text() = log.Text

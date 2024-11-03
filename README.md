@@ -1,8 +1,6 @@
 # AvalonLog
 
-
 [![AvalonLog on nuget.org](https://img.shields.io/nuget/v/AvalonLog.svg)](https://www.nuget.org/packages/AvalonLog/)
-[![AvalonLog on fuget.org](https://www.fuget.org/packages/AvalonLog/badge.svg)](https://www.fuget.org/packages/AvalonLog)
 ![code size](https://img.shields.io/github/languages/code-size/goswinr/AvalonLog.svg)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
@@ -55,6 +53,7 @@ For C# there is
 public void AppendWithBrush(SolidColorBrush br, string s)
 ```
 and similar functions on the `AvalonLog` instance.
+
 ### Documentation
 
 See extracted API at [fuget.org](https://www.fuget.org/packages/AvalonLog/0.14.0/lib/net472/AvalonLog.dll/AvalonLog)
@@ -74,6 +73,8 @@ MIT
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
 ### Changelog
+`0.15.0`
+- add Pen Utils, faster redraw, expose delay time
 
 `0.14.0`
 - AvalonEditB 2.4.0
