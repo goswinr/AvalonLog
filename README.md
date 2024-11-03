@@ -73,6 +73,9 @@ MIT
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
 ### Changelog
+`0.16.0`
+- upgrade to FSharp.Core 8.0.400 to make it work for Fesh.Revit
+
 `0.15.0`
 - add Pen Utils, faster redraw, expose delay time
 
