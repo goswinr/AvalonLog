@@ -102,6 +102,8 @@ type AvalonLog () =
 
     let searchPanel = Search.SearchPanel.Install(log, enableReplace = false)  // disable replace via search replace dialog
 
+    let mutable isAlive = true
+
     do
         base.Content <- log  //nest Avalonedit inside a simple ContentControl to hide most of its functionality
 
@@ -151,7 +153,7 @@ type AvalonLog () =
 
     let getBufferText () =
         let txt = buffer.ToString()
-        buffer.Clear()  |> ignoreObj
+        buffer.Clear()  |> ignore<StringBuilder>
         txt
 
     /// must be called in sync
@@ -165,13 +167,18 @@ type AvalonLog () =
 
     let newLine = Environment.NewLine
 
+    // let debugFile =
+    //     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "AvalonLogDebug.txt")
+    //     |>  fun p -> IO.File.AppendAllText(p, "AvalonLogDebug.txt created" + Environment.NewLine); p
+
 
     /// Adds string on UI thread  every 150ms then scrolls to end after 300ms.
     /// Optionally adds new line at end.
     /// Sets line color on LineColors dictionary for DocumentColorizingTransformer.
     /// printOrBuffer (txt:string, addNewLine:bool, typ:SolidColorBrush)
     let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence characters and don't print or count them, how many are skipped by ava-edit during Text.Append??
-        if stillLessThanMaxChars && (txt.Length <> 0 || addNewLine) then
+        // IO.File.AppendAllText(debugFile, txt + (if addNewLine then Environment.NewLine else "") + "£")
+        if stillLessThanMaxChars && (txt.Length <> 0 || addNewLine) && isAlive then
             lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
                 // Change color if needed:
                 if prevMsgBrush <> brush then
@@ -180,21 +187,21 @@ type AvalonLog () =
 
                 // add to buffer
                 if addNewLine then
-                    buffer.AppendLine(txt)  |> ignoreObj
+                    buffer.AppendLine(txt)  |> ignore<StringBuilder>
                     docLength <- docLength + txt.Length + newLine.Length
                 else
-                    buffer.Append(txt)  |> ignoreObj
+                    buffer.Append(txt)  |> ignore<StringBuilder>
                     docLength <- docLength + txt.Length
                 )
 
             // check if total text in log  is already to big , print it and then stop printing
-            if docLength > maxCharsInLog then // needed when log gets piled up with exception messages form Avalonedit rendering pipeline.
+            if docLength > maxCharsInLog && isAlive then // needed when log gets piled up with exception messages form Avalonedit rendering pipeline.
                 stillLessThanMaxChars <- false
                 log.Dispatcher.Invoke(printToLog)
                 let itsOverTxt = sprintf "%s%s  **** STOP OF LOGGING **** Log has more than %d characters! Clear Log view first %s%s%s%s " newLine newLine maxCharsInLog  newLine newLine  newLine newLine
                 lock buffer (fun () ->
                      offsetColors.Add { off = docLength; brush = Brushes.Red |> freeze}
-                     buffer.AppendLine(itsOverTxt)  |> ignoreObj
+                     buffer.AppendLine(itsOverTxt)  |> ignore<StringBuilder>
                      docLength <- docLength + itsOverTxt.Length
                     )
                 log.Dispatcher.Invoke(printToLog)
@@ -215,7 +222,7 @@ type AvalonLog () =
                     do! Async.Sleep 50
                     while dontPrintJustBuffer do // wait till don't PrintJustBuffer is set true from end of this.Clear() call
                         do! Async.Sleep 50
-                    if printCallsCounter.Value = k  then //it is the last call for 100 ms
+                    if printCallsCounter.Value = k && isAlive then //it is the last call for 100 ms
                         // on why using Invoke: https://stackoverflow.com/a/19009579/969070
                         log.Dispatcher.Invoke(printToLog)
                     } |> Async.StartImmediate
@@ -226,7 +233,7 @@ type AvalonLog () =
                 // PRINT CASE 1: since the last printing call more than 100 ms have elapsed. this case is used if a lot of print calls arrive at the log for a more than printInterval (100 ms.)
                 // PRINT CASE 2, wait 70 ms and print if nothing else has been added to the buffer during the last lastPrintDelay (70 ms)
 
-                if stopWatch.ElapsedMilliseconds > printInterval  then // PRINT CASE 1: only add to document every printInterval (100ms)
+                if stopWatch.ElapsedMilliseconds > printInterval && isAlive  then // PRINT CASE 1: only add to document every printInterval (100ms)
                     // printToLog() will also reset stopwatch.
                     // on why using Invoke: https://stackoverflow.com/a/19009579/969070
                     log.Dispatcher.Invoke( printToLog) // TODO a bit faster probably and less verbose than async here but would this propagate exceptions too ?
@@ -242,8 +249,10 @@ type AvalonLog () =
                     let mutable timer :option<Timer> = None
                     let k = Interlocked.Increment printCallsCounter
                     let action =  TimerCallback(fun _ ->
-                        if printCallsCounter.Value = k  then  log.Dispatcher.Invoke(printToLog) //PRINT CASE 2, it is the last call for 70 ms, there has been no other Increment to printCallsCounter
-                        if timer.IsSome then timer.Value.Dispose() // dispose inside callback, like in Async.Sleep
+                        if printCallsCounter.Value = k && isAlive then //PRINT CASE 2, it is the last call for 70 ms, there has been no other Increment to printCallsCounter
+                            log.Dispatcher.Invoke(printToLog) // without  isAlive  check this can throw a TaskCanceledException while some errors print to stdout during host shutdown (Fesh.Revit 2025)
+                        if timer.IsSome then
+                            timer.Value.Dispose() // dispose inside callback, like in Async.Sleep in FSharp.Core
                         )
                     timer <- Some (new Threading.Timer(action, null, dueTime = lastPrintDelay , period = -1))
 
@@ -258,6 +267,12 @@ type AvalonLog () =
      //-----------------------------------------------------------
      //----------------------exposed AvalonEdit members:----------
      //-----------------------------------------------------------
+
+    /// if not alive all calls to Dispatcher.Invoke will be cancelled
+    /// because they can throw a TaskCanceledException while some errors print to stdout during host shutdown (Fesh.Revit 2025)
+    member _.IsAlive
+        with get() = isAlive
+        and set v  = isAlive <- v
 
 
     member  _.VerticalScrollBarVisibility   with get() = log.VerticalScrollBarVisibility     and set v = log.VerticalScrollBarVisibility <- v
@@ -336,7 +351,7 @@ type AvalonLog () =
     member _.Clear() :unit =
         lock buffer (fun () ->
             dontPrintJustBuffer <- true
-            buffer.Clear() |>  ignoreObj
+            buffer.Clear() |>  ignore<StringBuilder>
             docLength <- 0
             prevMsgBrush <- null
             stillLessThanMaxChars <- true

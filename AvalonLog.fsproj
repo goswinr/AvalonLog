@@ -17,11 +17,11 @@
     <Product>AvalonLog</Product>
     <PackageId>AvalonLog</PackageId>
 
-    <Version>0.15.8</Version>
-    <AssemblyVersion>0.15.8</AssemblyVersion>
-    <FileVersion>0.15.8</FileVersion>
+    <Version>0.16.0</Version>
+    <AssemblyVersion>0.16.0</AssemblyVersion>
+    <FileVersion>0.16.0</FileVersion>
     <PackageReleaseNotes>
-      - FSharp.Core 8.0.400
+      - add .IsAlive property to turn on/off the logging
 	  </PackageReleaseNotes>
 
     <Authors>GoswinR</Authors>
@@ -60,7 +60,6 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="" />
-    <None Include="Doc/avalog.fsx" />
     <None Include="Doc/logo128.png" Pack="true" PackagePath="" /> <!--PackagePath = "" makes the file available to nuget pack tool-->
 
     <Compile Include="Src/Sync.fs" />

@@ -74,6 +74,9 @@ Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoo
 
 ### Changelog
 `0.16.0`
+- add .IsAlive property to turn on/off the logging
+
+`0.15.8`
 - upgrade to FSharp.Core 8.0.400 to make it work for Fesh.Revit
 
 `0.15.0`
