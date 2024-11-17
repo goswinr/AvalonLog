@@ -1,0 +1,25 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Build
+      run: dotnet --configuration Release
+
+    - name: Publish NuGet package
+      run: dotnet nuget push ./bin/AvalonLog.${{ github.ref }}.symbols.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
