@@ -1,17 +1,18 @@
+![Logo](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Docs/img/logo128.png)
 # AvalonLog
 
-[![AvalonLog on nuget.org](https://img.shields.io/nuget/v/AvalonLog.svg)](https://www.nuget.org/packages/AvalonLog/)
+[![AvalonLog on nuget.org](https://img.shields.io/nuget/v/AvalonLog)](https://www.nuget.org/packages/AvalonLog/)
+[![Build Status](https://github.com/goswinr/AvalonLog/actions/workflows/build.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/build.yml)
+[![Docs Build Status](https://github.com/goswinr/AvalonLog/actions/workflows/docs.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/docs.yml)
+[![license](https://img.shields.io/github/license/goswinr/AvalonLog)](LICENSE.md)
 ![code size](https://img.shields.io/github/languages/code-size/goswinr/AvalonLog.svg)
-[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-
-![logo](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Doc/logo400.png)
 
 AvalonLog is a fast and thread-safe WPF text log viewer for colored text. Including F# printf formatting. Based on [AvalonEditB](https://github.com/goswinr/AvalonEditB). Works on .NET Framework 4.7.2 and .NET 6.0
 
 Thread-safe means that it can be called from any thread.
 
 Fast means
-- it buffers repeated print calls and updates the view maximum 10 times per second. see ![source](https://github.com/goswinr/AvalonLog/blob/main/Src/AvalonLog.fs#L222)
+- it buffers repeated print calls and updates the view maximum 20 times per second. see ![source](https://github.com/goswinr/AvalonLog/blob/main/Src/AvalonLog.fs#L222)
 - Avalonedit is fast, the view is virtualized. It can easily handle thousands of lines.
 
 ### Usage
@@ -66,73 +67,12 @@ AvalonLog is available as [NuGet package](https://www.nuget.org/packages/AvalonL
 
 Just run `dotnet build`
 
+### Changelog
+see [CHANGELOG.md](https://github.com/goswinr/AvalonLog/blob/main/CHANGELOG.md)
+
 ### License
 
-MIT
+[MIT](https://github.com/goswinr/AvalonLog/blob/main/LICENSE.md)
 
 Logo by [LovePik](https://lovepik.com/image-401268798/crystal-parrot-side-cartoon.html)
 
-### Changelog
-`0.16.0`
-- add .IsAlive property to turn on/off the logging
-
-`0.15.8`
-- upgrade to FSharp.Core 8.0.400 to make it work for Fesh.Revit
-
-`0.15.0`
-- add Pen Utils, faster redraw, expose delay time
-
-`0.14.0`
-- AvalonEditB 2.4.0
-
-`0.13.0`
-- AvalonEditB 2.3.0
-
-`0.12.0`
-- AvalonEditB 2.2.0
-
-`0.11.0`
-- disable replace in Log
-- AvalonEditB 2.1.0
-
-`0.10.0`
-- AvalonEditB 2.0.0
-
-`0.9.1`
-- AvalonEditB 1.8.0
-
-`0.9.0`
-- AvalonEditB 1.7.0
-
-`0.8.3`
-- AvalonEditB 1.6.0
-
-`0.8.2`
-- net7.0
-- AvalonEditB 1.5.1
-- update readme, fix typos
-
-`0.7.2`
-- fix typos in readme
-
-`0.7.1`
-- use AvalonEditB `1.4.1`
-- fix typos in doc-strings
-
-`0.7.0`
-- fix crash when Log has more than 1000k characters
-
-`0.6.0`
-- fix ConditionalTextWriter
-
-`0.5.0`
-- Update to AvalonEditB `1.3.0`
-- target net6.0 and net472
-- fix typos in docstring
-
-`0.4.0`
-- Update to AvalonEditB `1.2.0`
-- Rename `GetTextWriterIf` to `GetConditionalTextWriter`
-
- `0.3.1`
-- Update Xml doc-strings

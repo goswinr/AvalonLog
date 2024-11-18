@@ -8,18 +8,19 @@ open System.Windows.Media // for color brushes
 
 /// Describes the position in text where a new color starts
 [<Struct>]
-type internal NewColor = 
+[<NoComparison>]
+type internal NewColor =
     {
     off   : int
     brush : SolidColorBrush // brush must be frozen to be used async
     }
 
     /// Does binary search to find an offset that is equal or smaller than currOff
-    static member findCurrentInList (cs:ResizeArray<NewColor>) currOff :NewColor = 
+    static member findCurrentInList (cs:ResizeArray<NewColor>) currOff :NewColor =
         //  cs has a least one item that is {off = -1 ; brush=null}, set in AvalonLog constructor
-        
+
         let last = cs.Count-1  //TODO: is it possible that count increases while iterating?
-        let rec find lo hi = 
+        let rec find lo hi =
             let mid = lo + (hi - lo) / 2          //TODO test edge conditions !!
             if cs.[mid].off <= currOff then
                 if mid = last                 then cs.[mid] // exit
@@ -31,7 +32,8 @@ type internal NewColor =
 
 /// Describes the start and end position of a color with one line
 [<Struct>]
-type internal RangeColor = 
+[<NoComparison>]
+type internal RangeColor =
     {
     start :int
     ende  :int
@@ -41,8 +43,8 @@ type internal RangeColor =
     /// Finds all the offset that apply to this line  which is defined by the range of  tOff to enOff
     /// even if the ResizeArray<NewColor> does not contain any offset between stOff and  enOff
     /// it still returns the a list with one item. The closest previous offset
-    static member getInRange (cs:ResizeArray<NewColor>) stOff enOff = 
-        let rec mkList i ls = 
+    static member getInRange (cs:ResizeArray<NewColor>) stOff enOff =
+        let rec mkList i ls =
             let c = NewColor.findCurrentInList cs i
             if c.off <= stOff  then
                 {start = stOff ; ende = enOff ; brush = c.brush} :: ls
@@ -52,14 +54,14 @@ type internal RangeColor =
 
 
 /// To implement the actual colors from colored printing
-type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>, defaultBrush) = 
+type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>, defaultBrush) =
     inherit Rendering.DocumentColorizingTransformer()
 
     let mutable selStart = -9
     let mutable selEnd   = -9
     let mutable any = false
 
-    member _.SelectionChangedDelegate ( a:EventArgs) = 
+    member _.SelectionChangedDelegate (_:EventArgs) =
         if ed.SelectionLength = 0 then // no selection
             selStart <- -9
             selEnd   <- -9
@@ -69,7 +71,7 @@ type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<New
 
 
     /// This gets called for every visible line on any view change
-    override this.ColorizeLine(line:Document.DocumentLine) = 
+    override this.ColorizeLine(line:Document.DocumentLine) =
         if not line.IsDeleted then
             let stLn = line.Offset
             let enLn = line.EndOffset

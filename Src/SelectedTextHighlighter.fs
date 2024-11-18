@@ -7,7 +7,7 @@ open AvalonLog.Util
 
 /// Highlight-all-occurrences-of-selected-text in Log Text View
 /// if the selection is more then two non-whitespace characters.
-type SelectedTextHighlighter (lg:TextEditor) = 
+type SelectedTextHighlighter (lg:TextEditor) =
     inherit Rendering.DocumentColorizingTransformer()
     //  based on https://stackoverflow.com/questions/9223674/highlight-all-occurrences-of-selected-word-in-avalonedit
 
@@ -24,9 +24,9 @@ type SelectedTextHighlighter (lg:TextEditor) =
     let highlightClearedEv  = new Event<unit>()
     let highlightChangedEv  = new Event<string*ResizeArray<int>>()
 
-    let selectionChanged () = 
+    let selectionChanged () =
         if isEnabled then
-            let selTxt = 
+            let selTxt =
                 let sel = lg.TextArea.Selection
                 if sel.Length < 2 then ""                                      //only highlight if 2 or more characters selected
                 elif sel.StartPosition.Line <> sel.EndPosition.Line then ""    //only highlight if one-line-selection
@@ -86,7 +86,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
     /// To enable or disable this highlighter, it is enabled by default.
     member _.IsEnabled
         with get () = isEnabled
-        and  set on  = 
+        and  set on  =
             isEnabled <- on
             if on then selectionChanged()
             elif notNull highTxt then // now off, clear highlight if any
@@ -96,7 +96,7 @@ type SelectedTextHighlighter (lg:TextEditor) =
 
     /// The main override for DocumentColorizingTransformer.
     /// This gets called for every visible line on any view change.
-    override _.ColorizeLine(line:Document.DocumentLine) = 
+    override _.ColorizeLine(line:Document.DocumentLine) =
         if isEnabled && notNull highTxt  then
             let  lineStartOffset = line.Offset;
             let  text = lg.Document.GetText(line)
@@ -111,6 +111,6 @@ type SelectedTextHighlighter (lg:TextEditor) =
                 index <- text.IndexOf(highTxt, start, StringComparison.Ordinal)
 
 
-    member _.SelectionChangedDelegate (a:EventArgs) = 
+    member _.SelectionChangedDelegate (_:EventArgs) =
         selectionChanged()
 

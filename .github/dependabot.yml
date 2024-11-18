@@ -11,10 +11,3 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    # ignore:
-    #   - dependency-name: "FSharp.Core"
-
-  # - package-ecosystem: "nuget"
-  #   directory: "/Tests/"
-  #   schedule:
-  #     interval: "daily"
