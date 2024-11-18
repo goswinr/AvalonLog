@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://github.com/goswinr/AvalonLog/compare/0.17.0...HEAD
-[0.16.1]: https://github.com/goswinr/AvalonLog/compare/0.16.0...0.17.0
+[0.17.0]: https://github.com/goswinr/AvalonLog/compare/0.16.0...0.17.0
 [0.16.0]: https://github.com/goswinr/AvalonLog/compare/0.15.8...0.16.0
 [0.15.8]: https://github.com/goswinr/AvalonLog/compare/0.15.0...0.15.8
 [0.15.0]: https://github.com/goswinr/AvalonLog/releases/tag/0.15.0
