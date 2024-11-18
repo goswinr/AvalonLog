@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation via [FSharp.Formatting](https://fsprojects.github.io/FSharp.Formatting/)
 - Github Actions for CI/CD
 ### Changed
-- pin FSharp.Core to same version as Fesh.Revit
+- pin FSharp.Core to latest version (for Fesh.Revit)
 
 ## [0.16.0] - 2024-11-10
 - add .IsAlive property to turn on/off the logging
@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://github.com/goswinr/AvalonLog/compare/0.16.1...HEAD
-[0.17.0]: https://github.com/goswinr/AvalonLog/compare/0.16.0...0.16.1
+[0.16.1]: https://github.com/goswinr/AvalonLog/compare/0.16.0...0.16.1
 [0.16.0]: https://github.com/goswinr/AvalonLog/compare/0.15.8...0.16.0
 [0.15.8]: https://github.com/goswinr/AvalonLog/compare/0.15.0...0.15.8
 [0.15.0]: https://github.com/goswinr/AvalonLog/releases/tag/0.15.0

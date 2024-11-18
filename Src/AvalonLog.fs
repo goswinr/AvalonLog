@@ -52,8 +52,8 @@ type LogTextWriter(write,writeLine) =
        let strWriter = l.AvalonLog.GetStreamWriter( LogColors.consoleOut) // Encoding.ASCII ??
        Console.SetOut(strWriter)
 
-/// A TextWriter that writes using a function.
-/// To set Console.Out to a text writer get one via AvalonLog.GetTextWriter(red,green,blue)
+// A TextWriter that writes using a function.
+// To set Console.Out to a text writer get one via AvalonLog.GetTextWriter(red,green,blue)
 type LogStreamWriter(ms:MemoryStream,write,writeLine) =
     inherit StreamWriter(ms)
     override _.Encoding = Text.Encoding.Default // ( UTF-16 )
