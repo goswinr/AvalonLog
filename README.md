@@ -12,13 +12,13 @@ AvalonLog is a fast and thread-safe WPF text log viewer for colored text. Includ
 Thread-safe means that it can be called from any thread.
 
 Fast means
-- it buffers repeated print calls and updates the view maximum 20 times per second. see ![source](https://github.com/goswinr/AvalonLog/blob/main/Src/AvalonLog.fs#L222)
+- it buffers repeated print calls and updates the view maximum 20 times per second. see [source](https://github.com/goswinr/AvalonLog/blob/main/Src/AvalonLog.fs#L222)
 - Avalonedit is fast, the view is virtualized. It can easily handle thousands of lines.
 
 ### Usage
 
 Here an short example for F# interactive in .NET Framework.
-(for net7.0 you would have to use it in a project)
+(for net9 you would have to use it in a project)
 
 ```fsharp
 #r "PresentationCore"
@@ -46,7 +46,7 @@ Application().Run(Window(Content=log))  // show WPF window
 ```
 this will produce
 
-![WPF window](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Doc/HelloWorld.png)
+![WPF window](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Docs/img/HelloWorld.png)
 
 
 For C# there is
@@ -55,9 +55,9 @@ public void AppendWithBrush(SolidColorBrush br, string s)
 ```
 and similar functions on the `AvalonLog` instance.
 
-### Documentation
+### Full API Documentation
 
-See extracted API at [fuget.org](https://www.fuget.org/packages/AvalonLog/0.14.0/lib/net472/AvalonLog.dll/AvalonLog)
+[goswinr.github.io/AvalonLog](https://goswinr.github.io/AvalonLog/reference/avalonlog.html)
 
 ### Download
 
