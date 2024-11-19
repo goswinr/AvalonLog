@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.17.0] - 2024-11-10
+## [0.17.0] - 2024-11-19
 ### Added
 - Documentation via [FSharp.Formatting](https://fsprojects.github.io/FSharp.Formatting/)
 - Github Actions for CI/CD
