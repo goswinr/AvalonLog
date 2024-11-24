@@ -7,6 +7,9 @@ updates:
       interval: "weekly"
 
   # Update to newer NuGet dependencies
+  # to work on FSharp.Core too the fsproj needs : <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+  # and <PackageReference Include="FSharp.Core" Version= ...
+  # see https://github.com/dependabot/dependabot-core/issues/10883
   - package-ecosystem: "nuget"
     directory: "/"
     schedule:

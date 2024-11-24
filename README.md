@@ -48,7 +48,6 @@ this will produce
 
 ![WPF window](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Docs/img/HelloWorld.png)
 
-
 For C# there is
 ```csharp
 public void AppendWithBrush(SolidColorBrush br, string s)
