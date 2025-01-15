@@ -61,7 +61,7 @@
 
   <ItemGroup>
     <!-- Fesh.Revit depends on this repo and if FSharp.Core is not on the same version here there is an assembly loading error -->
-    <PackageReference Include="FSharp.Core" Version="9.0.100" />  <!-- use 'Include' syntax, see .github/dependabot.yml -->
+    <PackageReference Include="FSharp.Core" Version="9.0.101" />  <!-- use 'Include' syntax, see .github/dependabot.yml -->
     <PackageReference Include="AvalonEditB" Version="2.4.0" />
     <PackageReference Include="Ionide.KeepAChangelog.Tasks" Version="0.1.8" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
