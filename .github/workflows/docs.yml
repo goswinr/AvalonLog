@@ -24,7 +24,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x' # Adjust the version as needed
+          dotnet-version: '9.x'
 
 
       - name: Restore dotnet tools

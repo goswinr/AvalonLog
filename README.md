@@ -4,10 +4,12 @@
 [![AvalonLog on nuget.org](https://img.shields.io/nuget/v/AvalonLog)](https://www.nuget.org/packages/AvalonLog/)
 [![Build Status](https://github.com/goswinr/AvalonLog/actions/workflows/build.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/build.yml)
 [![Docs Build Status](https://github.com/goswinr/AvalonLog/actions/workflows/docs.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/docs.yml)
+[![Check NuGet](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedNuget.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedNuget.yml)
+[![Check dotnet tools](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedDotnetTool.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedDotnetTool.yml)
 [![license](https://img.shields.io/github/license/goswinr/AvalonLog)](LICENSE.md)
 ![code size](https://img.shields.io/github/languages/code-size/goswinr/AvalonLog.svg)
 
-AvalonLog is a fast and thread-safe WPF text log viewer for colored text. Including F# printf formatting. Based on [AvalonEditB](https://github.com/goswinr/AvalonEditB). Works on .NET Framework 4.7.2 and .NET 6.0
+AvalonLog is a fast and thread-safe WPF text log viewer for colored text. Including F# printf formatting. Based on [AvalonEditB](https://github.com/goswinr/AvalonEditB). Works on .NET Framework 4.7.2 and .NET 7.0+
 
 Thread-safe means that it can be called from any thread.
 
