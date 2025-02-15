@@ -39,4 +39,4 @@ jobs:
 
 
     - name: Publish NuGet package
-      run: dotnet nuget push ./Src/bin/Release/*.symbols.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ./Src/bin/Release/AvalonLog.${{ github.ref_name}}.symbols.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
