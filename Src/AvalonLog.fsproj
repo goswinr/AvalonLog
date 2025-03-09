@@ -66,7 +66,6 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
 
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.32" />
-    <!-- https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#controlling-dependency-assets -->
   </ItemGroup>
 
   <ItemGroup>
@@ -84,4 +83,10 @@
   <Target Name="WriteChangelogVersion" AfterTargets="AfterBuild"> <!-- for version checks in github tag based builds -->
     <WriteLinesToFile File="./bin/ChangelogVersion.txt" Lines="@(CurrentReleaseChangelog)" Overwrite="true" ContinueOnError="false" />
   </Target>
+
+  <Target Name="CopyReadmeToDocs" AfterTargets="Build">
+    <!-- for fsdocs to build locally -->
+    <Copy SourceFiles="../README.md" DestinationFiles="../Docs/index.md" ContinueOnError="false"/>
+  </Target>
+
 </Project>
