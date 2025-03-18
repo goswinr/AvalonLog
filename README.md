@@ -56,6 +56,10 @@ public void AppendWithBrush(SolidColorBrush br, string s)
 ```
 and similar functions on the `AvalonLog` instance.
 
+> [!CAUTION]
+> When used from C# add a refrence to FSharp.Core 6.0.7 or higher.
+
+
 ### Full API Documentation
 
 [goswinr.github.io/AvalonLog](https://goswinr.github.io/AvalonLog/reference/avalonlog.html)
