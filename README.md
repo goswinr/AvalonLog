@@ -17,7 +17,7 @@ Fast means
 - it buffers repeated print calls and updates the view maximum 20 times per second. see [source](https://github.com/goswinr/AvalonLog/blob/main/Src/AvalonLog.fs#L222)
 - Avalonedit is fast, the view is virtualized. It can easily handle thousands of lines.
 
-### Usage
+### Use with F#
 
 Here an short example for F# interactive in .NET Framework.
 (for net9 you would have to use it in a project)
@@ -50,7 +50,8 @@ this will produce
 
 ![WPF window](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Docs/img/HelloWorld.png)
 
-For C# there is
+### Use in C#
+
 ```csharp
 public void AppendWithBrush(SolidColorBrush br, string s)
 ```
