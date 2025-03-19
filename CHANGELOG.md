@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.0] - 2025-03-19
+### Changed
+- remove Microsoft.Extensions.Logging dependency and the ILogger interface implementation
+(to fix a method-not-found-exception in Velopack in Fesh.Revit)
+
 ## [0.19.0] - 2025-03-18
 ### Changed
 - remove explicit FSharp.Core ref

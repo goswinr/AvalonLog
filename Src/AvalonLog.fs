@@ -11,22 +11,6 @@ open System.Text
 open System.Diagnostics
 open System.Windows.Controls
 open AvalonEditB.Document
-open Microsoft.Extensions.Logging
-
-
-module ILoggingColors =
-    let trace = Brushes.Gray |> freeze
-    let debug  = Brushes.Teal |> freeze
-
-    let information = Brushes.Blue |> freeze
-
-    let warning = Brushes.Orange |> freeze
-
-    let error = Brushes.Red |> freeze
-
-    let critical = Brushes.DarkRed |> freeze
-
-
 
 
 /// <summary>A ReadOnly text AvalonEdit Editor that provides colored appending via printfn like functions. </summary>
@@ -228,45 +212,12 @@ type AvalonLog () =
         customBrush <- br
         printOrBuffer (s, true, customBrush)
 
-    let iLogger = { // ILogger interface as F# object expression
-
-        new  ILogger with
-
-            member this.Log(logLevel, _eventId, state, except, formatter) =
-                let message = formatter.Invoke(state, except)
-                match logLevel with
-                | LogLevel.None         -> ()
-                | LogLevel.Trace        -> print (ILoggingColors.trace, message)
-                | LogLevel.Debug        -> print (ILoggingColors.debug, message)
-                | LogLevel.Information  -> print (ILoggingColors.information, message)
-                | LogLevel.Warning      -> print (ILoggingColors.warning, message)
-                | LogLevel.Error        -> print (ILoggingColors.error, message)
-                | LogLevel.Critical     -> print (ILoggingColors.critical, message)
-                | _                     -> print (Brushes.Black, message)
-
-            member _.IsEnabled(_logLevel) =
-                isAlive
-
-            member _.BeginScope(_state) =
-                { new IDisposable with
-                    member _.Dispose() = () }
-        }
 
 
 
     //-----------------------------------------------------------
     //----------------------exposed AvalonEdit members:----------
     //-----------------------------------------------------------
-
-    /// The ILogger interface for logging:
-    /// Trace -> Gray
-    /// Debug -> Teal
-    /// Information -> Blue
-    /// Warning -> Orange
-    /// Error -> Red
-    /// Critical -> DarkRed
-    /// None -> no logging
-    member _.ILogger = iLogger
 
     /// if not alive all calls to Dispatcher.Invoke will be cancelled
     /// because they can throw a TaskCanceledException while some errors print to stdout during host shutdown (Fesh.Revit 2025)
@@ -521,3 +472,52 @@ type AvalonLog () =
     member _.printfnLastColor msg =
         Printf.kprintf (fun s -> printOrBuffer (s, true, customBrush))  msg
 
+
+
+// module ILoggingColors =
+//     let mutable trace = Brushes.Gray |> freeze
+//     let mutable debug  = Brushes.Teal |> freeze
+
+//     let mutable information = Brushes.Blue |> freeze
+
+//     let mutable warning = Brushes.Orange |> freeze
+
+//     let mutable error = Brushes.Red |> freeze
+
+//     let mutable critical = Brushes.DarkRed |> freeze
+
+
+
+// let iLogger = { // ILogger interface as F# object expression
+
+//     new  ILogger with
+
+//         member this.Log(logLevel, _eventId, state, except, formatter) =
+//             let message = formatter.Invoke(state, except)
+//             match logLevel with
+//             | LogLevel.None         -> ()
+//             | LogLevel.Trace        -> print (ILoggingColors.trace, message)
+//             | LogLevel.Debug        -> print (ILoggingColors.debug, message)
+//             | LogLevel.Information  -> print (ILoggingColors.information, message)
+//             | LogLevel.Warning      -> print (ILoggingColors.warning, message)
+//             | LogLevel.Error        -> print (ILoggingColors.error, message)
+//             | LogLevel.Critical     -> print (ILoggingColors.critical, message)
+//             | _                     -> print (Brushes.Black, message)
+
+//         member _.IsEnabled(_logLevel) =
+//             isAlive
+
+//         member _.BeginScope(_state) =
+//             { new IDisposable with
+//                 member _.Dispose() = () }
+//     }
+
+    // The ILogger interface for logging:
+    // Trace -> Gray
+    // Debug -> Teal
+    // Information -> Blue
+    // Warning -> Orange
+    // Error -> Red
+    // Critical -> DarkRed
+    // None -> no logging
+    // member _.ILogger = iLogger
