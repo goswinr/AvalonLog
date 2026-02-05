@@ -65,8 +65,8 @@
     <!-- Fesh.Revit depends on this repo and if FSharp.Core is not on the same version here there is an assembly loading error , so use DisableImplicitFSharpCoreReference-->
     <PackageReference Update="FSharp.Core" Version="6.0.7" /> <!-- if "Update" is used it will be excluded from the final package because of DisableImplicitFSharpCoreReference-->
     <PackageReference Include="AvalonEditB" Version="2.4.0" />
-    <PackageReference Include="Ionide.KeepAChangelog.Tasks" Version="0.3.1" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <PackageReference Include="Ionide.KeepAChangelog.Tasks" Version="0.3.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.102" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
 
   </ItemGroup>
 
