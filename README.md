@@ -1,11 +1,11 @@
 ![Logo](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Docs/img/logo128.png)
+
 # AvalonLog
 
 [![AvalonLog on nuget.org](https://img.shields.io/nuget/v/AvalonLog)](https://www.nuget.org/packages/AvalonLog/)
 [![Build Status](https://github.com/goswinr/AvalonLog/actions/workflows/build.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/build.yml)
 [![Docs Build Status](https://github.com/goswinr/AvalonLog/actions/workflows/docs.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/docs.yml)
 [![Check NuGet](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedNuget.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedNuget.yml)
-[![Check dotnet tools](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedDotnetTool.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedDotnetTool.yml)
 [![license](https://img.shields.io/github/license/goswinr/AvalonLog)](LICENSE.md)
 ![code size](https://img.shields.io/github/languages/code-size/goswinr/AvalonLog.svg)
 
@@ -19,10 +19,10 @@ Fast means
 
 - Avalonedit is fast, the view is virtualized. It can easily handle thousands of lines.
 
-### Use with F#
+## Use with F#
 
 Here an short example for F# interactive in .NET Framework.
-(for net9 you would have to use it in a project)
+(for net5 or higher you would have to use it in a project)
 
 ```fsharp
 #r "PresentationCore"
@@ -48,6 +48,7 @@ green " is %d." (40 + 2)
 
 Application().Run(Window(Content=log))  // show WPF window
 ```
+
 this will produce
 
 ![WPF window](https://raw.githubusercontent.com/goswinr/AvalonLog/main/Docs/img/HelloWorld.png)

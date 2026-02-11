@@ -2,8 +2,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net472;net7.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
+    <TargetFrameworks>net472;net7.0-windows</TargetFrameworks> <!-- FsDoc will use the first target framework: https://fsprojects.github.io/FSharp.Formatting/apidocs.html#Selected-projects -->
     <LangVersion>preview</LangVersion>
 
     <NeutralLanguage>en</NeutralLanguage>
