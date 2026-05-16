@@ -5,7 +5,7 @@
 [![AvalonLog on nuget.org](https://img.shields.io/nuget/v/AvalonLog)](https://www.nuget.org/packages/AvalonLog/)
 [![Build Status](https://github.com/goswinr/AvalonLog/actions/workflows/build.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/build.yml)
 [![Docs Build Status](https://github.com/goswinr/AvalonLog/actions/workflows/docs.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/docs.yml)
-[![Check NuGet](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedNuget.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedNuget.yml)
+<!-- [![Check NuGet](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedNuget.yml/badge.svg)](https://github.com/goswinr/AvalonLog/actions/workflows/outdatedNuget.yml) -->
 [![license](https://img.shields.io/github/license/goswinr/AvalonLog)](LICENSE.md)
 ![code size](https://img.shields.io/github/languages/code-size/goswinr/AvalonLog.svg)
 
