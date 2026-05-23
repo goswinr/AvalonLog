@@ -5,6 +5,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
 
   # don't do nuget here, WPF does not build correctly on linux
   # to work on FSharp.Core too the fsproj needs : <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
@@ -14,3 +16,5 @@ updates:
   #   directory: "/"
   #   schedule:
   #     interval: "daily"
+    # cooldown:
+    #   default-days: 7
