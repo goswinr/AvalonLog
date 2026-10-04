@@ -67,6 +67,8 @@ type AvalonLog () =
         // to highlight all instances of the selected word
         log.TextArea.TextView.LineTransformers.Add(hiLi)
         log.TextArea.SelectionChanged.Add hiLi.SelectionChangedDelegate
+        log.TextChanged.Add hiLi.TextChangedDelegate // to update the count of occurrences
+        log.KeyDown.Add (fun e -> if e.Key = Windows.Input.Key.Escape then hiLi.ClearHighlight()) // the highlighting stays till Escape is pressed. (If the search panel is open, Escape closes it first.)
 
         match log.TextArea.LeftMargins.[0]  with  // the line number margin
         | :? Editing.LineNumberMargin as lm -> lm.HighlightCurrentLineNumber <- false // disable highlighting of current line number
