@@ -39,6 +39,13 @@ type AvalonLog () =
     /// Each print call reads it only once, so that a print from another thread can't change the color in between.
     let mutable customBrush     = Brushes.Black     |> freeze   // will be changed anyway on first call
 
+    /// Brushes get used on the UI thread, so they need to be frozen, if they were created on another thread.
+    /// A brush can only be frozen by the thread it belongs to, a brush of another thread (e.g. the UI thread) is used as is.
+    let frozen (br:SolidColorBrush) =
+        if notNull br && br.CheckAccess() && not br.IsFrozen && br.CanFreeze then // CheckAccess first, IsFrozen throws on an other thread
+            br.Freeze()
+        br
+
     /// Frozen brushes by their RGB value, so that printing with the same color does not create a new brush each time.
     let brushCache = Collections.Concurrent.ConcurrentDictionary<int, SolidColorBrush>()
 
@@ -352,7 +359,7 @@ type AvalonLog () =
     /// for use as use System.Console.SetOut(textWriter)
     /// or System.Console.SetError(textWriter)
     member _.GetTextWriter(br:SolidColorBrush) =
-        let fbr = br|> freeze
+        let fbr = frozen br
         new LogTextWriter   (fun s -> printOrBuffer (s, false, fbr)
                             ,fun s -> printOrBuffer (s, true , fbr)
                             )
@@ -361,7 +368,7 @@ type AvalonLog () =
     /// if the predicate returns true for the string sent to the text writer.
     /// The provide Color will be used.
     member _.GetConditionalTextWriter(predicate:string->bool, br:SolidColorBrush) =
-        let fbr = br|> freeze
+        let fbr = frozen br
         new LogTextWriter   (fun s -> if predicate s then printOrBuffer (s, false, fbr)
                             ,fun s -> if predicate s then printOrBuffer (s, true , fbr)
                             )
@@ -415,6 +422,7 @@ type AvalonLog () =
     /// Print string using the Brush provided.
     /// (without adding a new line at the end).
     member _.AppendWithBrush (br:SolidColorBrush, s) =
+        let br = frozen br
         customBrush <- br
         printOrBuffer (s, false, br)
 
@@ -442,6 +450,7 @@ type AvalonLog () =
     /// Print string using the Brush provided.
     /// Adds a new line at the end.
     member _.AppendLineWithBrush (br:SolidColorBrush, s) =
+        let br = frozen br
         customBrush <- br
         printOrBuffer (s, true, br)
 
@@ -458,12 +467,14 @@ type AvalonLog () =
     /// F# printf formatting using the Brush provided.
     /// (without adding a new line at the end).
     member _.printfBrush (br:SolidColorBrush) s =
+        let br = frozen br
         customBrush <- br
         Printf.kprintf (fun s -> printOrBuffer (s, false, br))  s
 
     /// F# printfn formatting using the Brush provided.
     /// Adds a new line at the end.
     member _.printfnBrush (br:SolidColorBrush) s =
+        let br = frozen br
         customBrush <- br
         Printf.kprintf (fun s -> printOrBuffer (s, true, br))  s
 

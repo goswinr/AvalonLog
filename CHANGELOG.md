@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - An exception while sending text to the UI thread from a background timer could terminate the host process. Printing also stops by itself once the UI Dispatcher shuts down
 - When `MaximumCharacterAllowance` was reached by several threads at once, the stop message could get printed more than once. A single print that is longer than the remaining allowance now gets cut off at the maximum, so it cannot freeze the UI
 - Printing with a color from two threads at once could print a line in the other thread's color. Printing with the same RGB color no longer creates a new brush each time
+- `AppendWithBrush`, `AppendLineWithBrush`, `printfBrush` and `printfnBrush` did not freeze the brush, so an unfrozen brush created on a worker thread crashed the rendering on the UI thread
 - Clearing the log while another thread was printing made that thread's text lose its color
 - A color change in the middle of a line split the rest of the line into one element per character, making its redraw up to 100x slower
 
