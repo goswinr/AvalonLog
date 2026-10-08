@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- the hosts AvalonLog runs in: .NET Framework (e.g. Revit 2024 and older) and .NET 8 (Revit 2025 and newer) -->
+    <TargetFrameworks>net472;net8.0-windows</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);44</NoWarn> <!-- the AvalonLog.AvalonEdit member is marked Obsolete only to hide it -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Helpers.fs" />
+    <Compile Include="TextWriterTests.fs" />
+    <Compile Include="PrintingTests.fs" />
+    <Compile Include="ColorTests.fs" />
+    <Compile Include="ScrollTests.fs" />
+    <Compile Include="HighlighterTests.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Src/AvalonLog.fsproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <!-- xunit.v3 4.x only runs with the new Microsoft.Testing.Platform 'dotnet test' (needs a global.json opt-in), 3.x also with VSTest, like in Caddis -->
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageReference Include="Xunit.StaFact" Version="3.0.13" /> <!-- for [<WpfFact>]: runs a test on an STA thread with a WPF Dispatcher -->
+  </ItemGroup>
+
+</Project>

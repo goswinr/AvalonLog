@@ -76,6 +76,10 @@ AvalonLog is available as [NuGet package](https://www.nuget.org/packages/AvalonL
 
 Just run `dotnet build`
 
+### How to test
+
+Run `dotnet test`. The tests in [Tests](https://github.com/goswinr/AvalonLog/tree/main/Tests) run on .NET Framework 4.7.2 and .NET 8, they need Windows (WPF).
+
 ### Changelog
 see [CHANGELOG.md](https://github.com/goswinr/AvalonLog/blob/main/CHANGELOG.md)
 
