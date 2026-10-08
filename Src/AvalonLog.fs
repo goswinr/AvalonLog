@@ -35,16 +35,24 @@ type AvalonLog () =
     /// Will be changed if AvalonEdit foreground brush changes
     let mutable defaultBrush    = Brushes.Black     |> freeze // should be same as default foreground. Will be set on foreground color changes
 
-    /// Used for printing with custom rgb values
+    /// The last brush or color used, for e.g. AppendWithLastColor.
+    /// Each print call reads it only once, so that a print from another thread can't change the color in between.
     let mutable customBrush     = Brushes.Black     |> freeze   // will be changed anyway on first call
 
-    let setCustomBrush(red,green,blue) =
+    /// Frozen brushes by their RGB value, so that printing with the same color does not create a new brush each time.
+    let brushCache = Collections.Concurrent.ConcurrentDictionary<int, SolidColorBrush>()
+
+    /// Returns a frozen brush for these red, green and blue values (each clamped to 0-255).
+    let getBrush(red,green,blue) =
         let r = clampToByte red
         let g = clampToByte green
         let b = clampToByte blue
-        let col = customBrush.Color
-        if col.R <> r || col.G <> g || col.B <> b then // only change if different
-            customBrush <- freeze (new SolidColorBrush(Color.FromRgb(r,g,b)))
+        let key = (int r <<< 16) ||| (int g <<< 8) ||| int b
+        match brushCache.TryGetValue key with
+        | true, br -> br
+        | _ ->
+            if brushCache.Count > 1000 then brushCache.Clear() // in case a lot of different colors get used, e.g. for a gradient
+            brushCache.GetOrAdd(key, freeze (new SolidColorBrush(Color.FromRgb(r,g,b))))
 
     let log =  new TextEditor()
     let hiLi = new SelectedTextHighlighter(log)
@@ -221,11 +229,6 @@ type AvalonLog () =
 
             if flushNow then
                 printToLog()
-
-    let print (br:SolidColorBrush, s) =
-        customBrush <- br
-        printOrBuffer (s, true, customBrush)
-
 
 
 
@@ -405,14 +408,15 @@ type AvalonLog () =
     /// Print string using red, green and blue color values (each between 0 and 255).
     /// (without adding a new line at the end).
     member _.AppendWithColor (red, green, blue, s) =
-        setCustomBrush (red,green,blue)
-        printOrBuffer (s, false, customBrush )
+        let br = getBrush (red,green,blue)
+        customBrush <- br
+        printOrBuffer (s, false, br)
 
     /// Print string using the Brush provided.
     /// (without adding a new line at the end).
     member _.AppendWithBrush (br:SolidColorBrush, s) =
         customBrush <- br
-        printOrBuffer (s, false, customBrush )
+        printOrBuffer (s, false, br)
 
     /// Print string using the last Brush or color provided.
     /// (without adding a new line at the end
@@ -431,14 +435,15 @@ type AvalonLog () =
     /// Print string using red, green and blue color values (each between 0 and 255).
     /// Adds a new line at the end
     member _.AppendLineWithColor (red, green, blue, s) =
-        setCustomBrush (red,green,blue)
-        printOrBuffer (s, true, customBrush )
+        let br = getBrush (red,green,blue)
+        customBrush <- br
+        printOrBuffer (s, true, br)
 
     /// Print string using the Brush provided.
     /// Adds a new line at the end.
     member _.AppendLineWithBrush (br:SolidColorBrush, s) =
         customBrush <- br
-        printOrBuffer (s, true, customBrush)
+        printOrBuffer (s, true, br)
 
     /// Print string using the last Brush or color provided.
     /// Adds a new line at the end
@@ -454,35 +459,39 @@ type AvalonLog () =
     /// (without adding a new line at the end).
     member _.printfBrush (br:SolidColorBrush) s =
         customBrush <- br
-        Printf.kprintf (fun s -> printOrBuffer (s, false, customBrush))  s
+        Printf.kprintf (fun s -> printOrBuffer (s, false, br))  s
 
     /// F# printfn formatting using the Brush provided.
     /// Adds a new line at the end.
     member _.printfnBrush (br:SolidColorBrush) s =
         customBrush <- br
-        Printf.kprintf (fun s -> printOrBuffer (s, true, customBrush))  s
+        Printf.kprintf (fun s -> printOrBuffer (s, true, br))  s
 
     /// F# printf formatting using red, green and blue color values (each between 0 and 255).
     /// (without adding a new line at the end)
     member _.printfColor red green blue msg =
-        setCustomBrush (red,green,blue)
-        Printf.kprintf (fun s -> printOrBuffer (s,false, customBrush ))  msg
+        let br = getBrush (red,green,blue)
+        customBrush <- br
+        Printf.kprintf (fun s -> printOrBuffer (s,false, br))  msg
 
     /// F# printfn formatting using red, green and blue color values (each between 0 and 255).
     /// Adds a new line at the end
     member _.printfnColor red green blue msg =
-        setCustomBrush (red,green,blue)
-        Printf.kprintf (fun s -> printOrBuffer (s,true, customBrush ))  msg
+        let br = getBrush (red,green,blue)
+        customBrush <- br
+        Printf.kprintf (fun s -> printOrBuffer (s,true, br))  msg
 
     /// F# printf formatting using the last Brush or color provided.
     /// (without adding a new line at the end
     member _.printfLastColor msg =
-        Printf.kprintf (fun s -> printOrBuffer (s, false, customBrush))  msg
+        let br = customBrush
+        Printf.kprintf (fun s -> printOrBuffer (s, false, br))  msg
 
     /// F# printfn formatting using the last Brush or color provided.
     /// Adds a new line at the end
     member _.printfnLastColor msg =
-        Printf.kprintf (fun s -> printOrBuffer (s, true, customBrush))  msg
+        let br = customBrush
+        Printf.kprintf (fun s -> printOrBuffer (s, true, br))  msg
 
 
 
