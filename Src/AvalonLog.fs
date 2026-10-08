@@ -21,8 +21,14 @@ type AvalonLog () =
     inherit ContentControl()  // the most simple and generic type of UIelement container, like a <div> in html
 
     /// Stores all the locations where a new color starts.
-    /// Will be searched via binary search in colorizing transformers
+    /// Will be searched via binary search in colorizing transformers.
+    /// Only used on the UI thread.
     let offsetColors = ResizeArray<NewColor>( [ {off = -1 ; brush=null} ] )    // null is console out // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
+
+    /// The color changes in the text that is still in the buffer.
+    /// The offsets are relative to the start of the buffer.
+    /// Guarded by lock buffer. Moved to offsetColors on the UI thread in printToLog().
+    let pendingColors = ResizeArray<NewColor>()
 
 
     /// Same as default foreground in underlying AvalonEdit.
@@ -85,7 +91,6 @@ type AvalonLog () =
     let mutable docLength = 0  //to be able to have the doc length async
     let mutable maxCharsInLog = 1024_000 // about 10k lines with 100 chars each
     let mutable stillLessThanMaxChars = true
-    let mutable dontPrintJustBuffer = false // for use in this.Clear() to make sure a print after a clear does not get swallowed
 
     let mutable printInterval : int64 = 50L //100L
 
@@ -98,16 +103,24 @@ type AvalonLog () =
     // https://github.com/icsharpcode/AvalonEdit/issues/226
     //-----------------------------------------------------------------------------------
 
-    let getBufferText () =
+    /// Returns the buffered text and its color changes and clears both, call within lock buffer.
+    let takeBuffer () =
         let txt = buffer.ToString()
         buffer.Clear()  |> ignore<StringBuilder>
-        txt
+        let cols = if pendingColors.Count = 0 then Array.Empty() else pendingColors.ToArray()
+        pendingColors.Clear()
+        txt, cols
 
-    /// must be called in sync
+    /// Must be called on the UI thread.
+    /// This is the only place where offsetColors grows.
     let printToLog() =
-        let txt = lock buffer getBufferText //lock for safe access
-        if txt.Length > 0 then //might be empty from calls during don't PrintJustBuffer = true
-            log.AppendText(txt)     // TODO is it possible that avalonedit skips adding some escape ANSI characters to document?? then docLength could be out of sync !! TODO
+        let txt, cols = lock buffer takeBuffer //lock for safe access
+        if txt.Length > 0 then //might be empty if a previous call already printed it
+            // the color offsets are relative to the buffer, make them relative to the document:
+            let docOff = log.Document.TextLength
+            for c in cols do
+                offsetColors.Add { off = docOff + c.off; brush = c.brush }
+            log.AppendText(txt)
             log.ScrollToEnd()
             if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712
             stopWatch.Restart()
@@ -129,8 +142,8 @@ type AvalonLog () =
         if stillLessThanMaxChars && (txt.Length <> 0 || addNewLine) && isAlive then
             lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
                 // Change color if needed:
-                if prevMsgBrush <> brush then
-                    offsetColors.Add { off = docLength; brush = brush } // TODO filter out ANSI escape chars first or just keep them in the doc but not in the visual line ??
+                if not (Object.ReferenceEquals(prevMsgBrush, brush)) then
+                    pendingColors.Add { off = buffer.Length; brush = brush }
                     prevMsgBrush <- brush
 
                 // add to buffer
@@ -148,7 +161,7 @@ type AvalonLog () =
                 log.Dispatcher.Invoke(printToLog)
                 let itsOverTxt = sprintf "%s%s  **** STOP OF LOGGING **** Log has more than %d characters! Clear Log view first %s%s%s%s " newLine newLine maxCharsInLog  newLine newLine  newLine newLine
                 lock buffer (fun () ->
-                     offsetColors.Add { off = docLength; brush = Brushes.Red |> freeze}
+                     pendingColors.Add { off = buffer.Length; brush = Brushes.Red |> freeze}
                      buffer.AppendLine(itsOverTxt)  |> ignore<StringBuilder>
                      docLength <- docLength + itsOverTxt.Length
                     )
@@ -162,18 +175,6 @@ type AvalonLog () =
                 //    log.ScrollToEnd()
                 //    log.ScrollToEnd() // call twice because of https://github.com/icsharpcode/AvalonEdit/issues/226
                 //    } |> Async.StartImmediate
-
-            // check if we are in the process of clearing the view
-            elif dontPrintJustBuffer then // wait really long before printing
-                async {
-                    let k = Interlocked.Increment printCallsCounter
-                    do! Async.Sleep 50
-                    while dontPrintJustBuffer do // wait till don't PrintJustBuffer is set true from end of this.Clear() call
-                        do! Async.Sleep 50
-                    if printCallsCounter.Value = k && isAlive then //it is the last call for 100 ms
-                        // on why using Invoke: https://stackoverflow.com/a/19009579/969070
-                        log.Dispatcher.Invoke(printToLog)
-                    } |> Async.StartImmediate
 
             // normal case:
             else
@@ -304,27 +305,23 @@ type AvalonLog () =
     /// The Color of the last print will still be remembered
     /// e.g. for log.AppendWithLastColor(..)
     member _.Clear() :unit =
-        lock buffer (fun () ->
-            dontPrintJustBuffer <- true
-            buffer.Clear() |>  ignore<StringBuilder>
-            docLength <- 0
-            prevMsgBrush <- null
-            stillLessThanMaxChars <- true
-            printCallsCounter := 0L
-            )
-
-        // log.Dispatcher.Invoke needed.
-        // If this would be done via async{ and do! Async.SwitchToContext a subsequent call via Dispatcher.Invoke ( like print to log) would still come before.
-        // It starts faster than async with SwitchToContext
+        // All on the UI thread, where offsetColors is used and printToLog() runs.
+        // Invoke and not BeginInvoke, so that a print after this call does not get cleared too.
         log.Dispatcher.Invoke( fun () ->
-            log.Clear()
-            offsetColors.Clear() // this should be done after log.clear() to avoid race condition where log tries to redraw but offsetColors is already empty
+            lock buffer (fun () ->
+                buffer.Clear() |>  ignore<StringBuilder>
+                pendingColors.Clear()
+                docLength <- 0
+                prevMsgBrush <- null
+                stillLessThanMaxChars <- true
+                )
+            // Prints arriving from now on are buffered with their color offsets relative to the buffer.
+            // printToLog() can only add them to offsetColors after this function, so they are not affected by the clearing below.
+            offsetColors.Clear()
             offsetColors.Add {off = -1 ; brush=null}  // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
-            //log.SelectionLength <- 0
-            //log.SelectionStart <- 0
+            log.Clear()
             defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze)   // TODO or remember custom brush ?
-            stopWatch.Restart() // works async too
-            dontPrintJustBuffer <- false // this is important to release pending prints stuck in while loop in printOrBuffer()
+            stopWatch.Restart()
             )
 
 
