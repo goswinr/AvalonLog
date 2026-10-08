@@ -6,8 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Added
-- Nothing yet.
+### Fixed
+- TextWriter: `Write(char)`, `Write(char[])`, `Write(ReadOnlySpan<char>)` and `Write(StringBuilder)` were silently dropped
+- Printing a null string threw a NullReferenceException, now it prints nothing
 
 ## [0.20.0] - 2025-03-19
 ### Changed

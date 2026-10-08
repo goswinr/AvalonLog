@@ -124,6 +124,7 @@ type AvalonLog () =
     /// printOrBuffer (txt:string, addNewLine:bool, typ:SolidColorBrush)
     let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence characters and don't print or count them, how many are skipped by ava-edit during Text.Append??
         // IO.File.AppendAllText(debugFile, txt + (if addNewLine then Environment.NewLine else "") + "£")
+        let txt = if isNull txt then "" else txt
         if stillLessThanMaxChars && (txt.Length <> 0 || addNewLine) && isAlive then
             lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
                 // Change color if needed:
