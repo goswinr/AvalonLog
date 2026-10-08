@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Printing never blocks the printing thread. One shared timer posts the text to the UI thread, at most every `PrintInterval` (50 ms). A single printfn now updates the screen once instead of twice. Printing 200k lines via `Console.Out` is about 10x faster.
+
 ### Fixed
 - TextWriter: `Write(char)`, `Write(char[])`, `Write(ReadOnlySpan<char>)` and `Write(StringBuilder)` were silently dropped
 - Printing a null string threw a NullReferenceException, now it prints nothing

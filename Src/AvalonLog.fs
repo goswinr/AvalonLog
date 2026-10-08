@@ -84,9 +84,7 @@ type AvalonLog () =
         defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze) // just to be sure they are the same
         //log.Foreground.Changed.Add ( fun _ -> LogColors.consoleOut <- (log.Foreground.Clone() :?> SolidColorBrush |> freeze)) // this event attaching can't  be done because it is already frozen
 
-    let printCallsCounter = ref 0L
     let mutable prevMsgBrush = null //null is no color for console // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
-    let stopWatch = Stopwatch.StartNew()
     let buffer =  new StringBuilder()
     let mutable docLength = 0  //to be able to have the doc length async
     let mutable maxCharsInLog = 1024_000 // about 10k lines with 100 chars each
@@ -96,8 +94,22 @@ type AvalonLog () =
 
     let mutable lastPrintDelay : int = 30 //70
 
+    /// True from the first print into an empty buffer till printToLog() takes the buffer.
+    /// Guarded by lock buffer.
+    let mutable flushPending = false
+
+    /// Stopwatch timestamp of when flushPending was set. Guarded by lock buffer.
+    let mutable pendingSince = 0L
+
+    /// Stopwatch timestamp of the last time printToLog() took text from the buffer. Guarded by lock buffer.
+    let mutable lastFlush = Stopwatch.GetTimestamp()
+
+    let msSince (timestamp:int64) = (Stopwatch.GetTimestamp() - timestamp) * 1000L / Stopwatch.Frequency
+
     //-----------------------------------------------------------------------------------
-    // The below functions are trying to work around double UI update in printfn for better UI performance,
+    // Print calls from any thread only append to the buffer.
+    // The text gets added to the document on the UI thread in printToLog(), at most every printInterval.
+    // This is to avoid the double UI update in printfn (it calls Write several times per line)
     // and the poor performance of log.ScrollToEnd().
     // https://github.com/dotnet/fsharp/issues/3712
     // https://github.com/icsharpcode/AvalonEdit/issues/226
@@ -105,8 +117,11 @@ type AvalonLog () =
 
     /// Returns the buffered text and its color changes and clears both, call within lock buffer.
     let takeBuffer () =
+        flushPending <- false
         let txt = buffer.ToString()
-        buffer.Clear()  |> ignore<StringBuilder>
+        if txt.Length > 0 then
+            lastFlush <- Stopwatch.GetTimestamp()
+            buffer.Clear()  |> ignore<StringBuilder>
         let cols = if pendingColors.Count = 0 then Array.Empty() else pendingColors.ToArray()
         pendingColors.Clear()
         txt, cols
@@ -123,7 +138,30 @@ type AvalonLog () =
             log.AppendText(txt)
             log.ScrollToEnd()
             if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712
-            stopWatch.Restart()
+
+    /// The one timer that triggers printToLog() on the UI thread.
+    /// It only runs while a flush is pending. Started in scheduleFlush().
+    let flushTimer =
+        new Timer( TimerCallback(fun _ ->
+            if isAlive then
+                log.Dispatcher.BeginInvoke(Action printToLog) |> ignore<Windows.Threading.DispatcherOperation>
+            ), null, Timeout.Infinite, Timeout.Infinite)
+
+    /// Makes sure that printToLog() will run soon, call within lock buffer.
+    /// Returns true if the caller should call printToLog() right away (see below).
+    let scheduleFlush () =
+        if not flushPending then
+            flushPending <- true
+            pendingSince <- Stopwatch.GetTimestamp()
+            // wait at least lastPrintDelay so that all the parts of a printfn call get printed together,
+            // and at least printInterval since the last flush:
+            let wait = max (int64 lastPrintDelay) (printInterval - msSince lastFlush)
+            flushTimer.Change(max 0L wait, -1L) |> ignore<bool>
+            false
+        else
+            // The flush posted to the UI thread can only run once the UI thread is idle.
+            // So if the UI thread itself prints for a long time, print inline every printInterval:
+            msSince pendingSince > printInterval && log.Dispatcher.CheckAccess()
 
     let newLine = Environment.NewLine
 
@@ -132,15 +170,16 @@ type AvalonLog () =
     //     |>  fun p -> IO.File.AppendAllText(p, "AvalonLogDebug.txt created" + Environment.NewLine); p
 
 
-    /// Adds string on UI thread  every 150ms then scrolls to end after 300ms.
-    /// Optionally adds new line at end.
-    /// Sets line color on LineColors dictionary for DocumentColorizingTransformer.
-    /// printOrBuffer (txt:string, addNewLine:bool, typ:SolidColorBrush)
+    /// Adds the string to the buffer, optionally with a new line at end.
+    /// Records the color change for the ColorizingTransformer if needed.
+    /// The buffer gets added to the document on the UI thread in printToLog().
+    /// Never blocks, may be called from any thread.
     let printOrBuffer (txt:string, addNewLine:bool, brush:SolidColorBrush) = // TODO check for escape sequence characters and don't print or count them, how many are skipped by ava-edit during Text.Append??
         // IO.File.AppendAllText(debugFile, txt + (if addNewLine then Environment.NewLine else "") + "£")
         let txt = if isNull txt then "" else txt
         if stillLessThanMaxChars && (txt.Length <> 0 || addNewLine) && isAlive then
-            lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
+            let flushNow =
+              lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
                 // Change color if needed:
                 if not (Object.ReferenceEquals(prevMsgBrush, brush)) then
                     pendingColors.Add { off = buffer.Length; brush = brush }
@@ -153,65 +192,23 @@ type AvalonLog () =
                 else
                     buffer.Append(txt)  |> ignore<StringBuilder>
                     docLength <- docLength + txt.Length
+
+                scheduleFlush()
                 )
 
             // check if total text in log  is already to big , print it and then stop printing
             if docLength > maxCharsInLog && isAlive then // needed when log gets piled up with exception messages form Avalonedit rendering pipeline.
                 stillLessThanMaxChars <- false
-                log.Dispatcher.Invoke(printToLog)
                 let itsOverTxt = sprintf "%s%s  **** STOP OF LOGGING **** Log has more than %d characters! Clear Log view first %s%s%s%s " newLine newLine maxCharsInLog  newLine newLine  newLine newLine
                 lock buffer (fun () ->
                      pendingColors.Add { off = buffer.Length; brush = Brushes.Red |> freeze}
                      buffer.AppendLine(itsOverTxt)  |> ignore<StringBuilder>
                      docLength <- docLength + itsOverTxt.Length
+                     scheduleFlush() |> ignore<bool>
                     )
-                log.Dispatcher.Invoke(printToLog)
 
-                //previous version: (suffers from race condition where Async.SwitchToContext SyncAvalonLog.context does not work)
-                //async {
-                //    do! Async.SwitchToContext SyncAvalonLog.context
-                //    printToLog()// runs with a lock too
-                //    log.AppendText(sprintf "%s%s  *** STOP OF LOGGING *** Log has more than %d characters! clear Log view first" newLine newLine maxCharsInLog)
-                //    log.ScrollToEnd()
-                //    log.ScrollToEnd() // call twice because of https://github.com/icsharpcode/AvalonEdit/issues/226
-                //    } |> Async.StartImmediate
-
-            // normal case:
-            else
-                // check the two criteria for actually printing
-                // PRINT CASE 1: since the last printing call more than 100 ms have elapsed. this case is used if a lot of print calls arrive at the log for a more than printInterval (100 ms.)
-                // PRINT CASE 2, wait 70 ms and print if nothing else has been added to the buffer during the last lastPrintDelay (70 ms)
-
-                if stopWatch.ElapsedMilliseconds > printInterval && isAlive  then // PRINT CASE 1: only add to document every printInterval (100ms)
-                    // printToLog() will also reset stopwatch.
-                    // on why using Invoke: https://stackoverflow.com/a/19009579/969070
-                    log.Dispatcher.Invoke( printToLog) // TODO a bit faster probably and less verbose than async here but would this propagate exceptions too ?
-
-                    //previous version:
-                    //async {
-                    //    do! Async.SwitchToContext SyncAvalonLog.context // slower to start but this would this propagate exceptions too ?
-                    //    printToLog() // runs with a lock too
-                    //    } |> Async.StartImmediate
-
-                else
-                    /// do timing as low level as possible: see Async.Sleep in  https://github.com/dotnet/fsharp/blob/main/src/fsharp/FSharp.Core/async.fs#L1587
-                    let mutable timer :option<Timer> = None
-                    let k = Interlocked.Increment printCallsCounter
-                    let action =  TimerCallback(fun _ ->
-                        if printCallsCounter.Value = k && isAlive then //PRINT CASE 2, it is the last call for 70 ms, there has been no other Increment to printCallsCounter
-                            log.Dispatcher.Invoke(printToLog) // without  isAlive  check this can throw a TaskCanceledException while some errors print to stdout during host shutdown (Fesh.Revit 2025)
-                        if timer.IsSome then
-                            timer.Value.Dispose() // dispose inside callback, like in Async.Sleep in FSharp.Core
-                        )
-                    timer <- Some (new Threading.Timer(action, null, dueTime = lastPrintDelay , period = -1))
-
-                    // previous version:
-                    //async {
-                    //    let k = Interlocked.Increment printCallsCounter
-                    //    do! Async.Sleep 100
-                    //    if !printCallsCounter = k  then //PRINT CASE 2, it is the last call for 100 ms
-                    //        log.Dispatcher.Invoke(printToLog)
-                    //    } |> Async.StartImmediate
+            elif flushNow then
+                printToLog()
 
     let print (br:SolidColorBrush, s) =
         customBrush <- br
@@ -239,14 +236,16 @@ type AvalonLog () =
     member  _.ShowLineNumbers  with get() = log.ShowLineNumbers             and set v = log.ShowLineNumbers <- v
     member  _.EnableHyperlinks with get() = log.Options.EnableHyperlinks    and set v = log.Options.EnableHyperlinks  <- v
 
-    /// the delay in milliseconds after the last print call before the log is printed to the screen
-    /// should be less than the printInterval
+    /// The delay in milliseconds from a print call (after a pause in printing) until the text shows on screen.
+    /// This is so that all the parts of a printfn call show up together. (printfn calls Write several times per line)
+    /// Default is 30 ms.
     member _.LastPrintDelay
         with get() = lastPrintDelay
         and set v = lastPrintDelay <- v
 
-    /// the time in milliseconds between two print calls to the log
-    /// any print calls arriving during this time will be buffered and printed in one go after the printInterval
+    /// The minimum time in milliseconds between two updates of the text on screen.
+    /// Any print calls arriving during this time will be buffered and printed in one go.
+    /// Default is 50 ms, so the screen gets updated at most 20 times per second.
     member _.PrintInterval
         with get() = printInterval
         and set v = printInterval <- v
@@ -321,7 +320,6 @@ type AvalonLog () =
             offsetColors.Add {off = -1 ; brush=null}  // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
             log.Clear()
             defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze)   // TODO or remember custom brush ?
-            stopWatch.Restart()
             )
 
 
