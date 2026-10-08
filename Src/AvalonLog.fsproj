@@ -73,7 +73,6 @@
   <ItemGroup>
     <None Include="../README.md" Pack="true" PackagePath="" />
     <None Include="../Docs/img/logo128.png" Pack="true" PackagePath="" />    <!--PackagePath = "" makes the file available to nuget pack tool-->
-    <Compile Include="Sync.fs" />
     <Compile Include="Brush.fs" />
     <Compile Include="Util.fs" />
     <Compile Include="TextColor.fs" />

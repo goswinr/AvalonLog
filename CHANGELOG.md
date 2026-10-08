@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Printing with a color from two threads at once could print a line in the other thread's color. Printing with the same RGB color no longer creates a new brush each time
 - `AppendWithBrush`, `AppendLineWithBrush`, `printfBrush` and `printfnBrush` did not freeze the brush, so an unfrozen brush created on a worker thread crashed the rendering on the UI thread
 - On .NET Framework the editor and the TextWriter reported the ANSI code page as encoding, now UTF-8 (without BOM), like on .NET Core
+- Selecting text crashed the process when there is no WPF `Application` object (e.g. in a plugin of a non WPF host). The selection highlighter now uses the Dispatcher of the editor
 - Clearing the log while another thread was printing made that thread's text lose its color
 - A color change in the middle of a line split the rest of the line into one element per character, making its redraw up to 100x slower
 

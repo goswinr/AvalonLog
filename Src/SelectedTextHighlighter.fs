@@ -35,23 +35,28 @@ type SelectedTextHighlighter (lg:TextEditor) =
         searchId <- searchId + 1
         let thisId = searchId
         let doc = lg.Document // get doc in sync first !
+        let dispatcher = lg.Dispatcher // the UI thread of this editor, Application.Current might be null or on another thread
         async{
             do! Async.Sleep 100 // in case the selection or the text changes again quickly, e.g. while dragging the selection
             if thisId = searchId then
-                let tx = doc.CreateSnapshot().Text
-                let locations = ResizeArray()
-                let mutable  index = tx.IndexOf(txt, 0, StringComparison.Ordinal)
-                while index >= 0 do
-                    locations.Add(index)
-                    let st =  index + txt.Length
-                    if st >= tx.Length then
-                        index <- -99
-                    else
-                        index <- tx.IndexOf(txt, st, StringComparison.Ordinal)
+                try
+                    let tx = doc.CreateSnapshot().Text
+                    let locations = ResizeArray()
+                    let mutable  index = tx.IndexOf(txt, 0, StringComparison.Ordinal)
+                    while index >= 0 do
+                        locations.Add(index)
+                        let st =  index + txt.Length
+                        if st >= tx.Length then
+                            index <- -99
+                        else
+                            index <- tx.IndexOf(txt, st, StringComparison.Ordinal)
 
-                do! Async.SwitchToContext SyncAvalonLog.context
-                if thisId = searchId then // there was no newer search or clearing in the meantime
-                    highlightChangedEv.Trigger(txt, locations)    // to update status bar or similar UI
+                    dispatcher.BeginInvoke(Action(fun () ->
+                        if thisId = searchId then // there was no newer search or clearing in the meantime
+                            highlightChangedEv.Trigger(txt, locations)    // to update status bar or similar UI
+                        )) |> ignore<Windows.Threading.DispatcherOperation>
+                with _ ->
+                    () // this runs on a threadpool thread, an exception here would terminate the process, e.g. if the dispatcher has shut down
             }   |> Async.Start
 
     let clearHighlight () =
