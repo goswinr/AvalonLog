@@ -185,34 +185,41 @@ type AvalonLog () =
         if stillLessThanMaxChars && (txt.Length <> 0 || addNewLine) && isAlive then
             let flushNow =
               lock buffer (fun () ->  // or rwl.EnterWriteLock() //https://stackoverflow.com/questions/23661863/f-synchronized-access-to-list
-                // Change color if needed:
-                if not (Object.ReferenceEquals(prevMsgBrush, brush)) then
-                    pendingColors.Add { off = buffer.Length; brush = brush }
-                    prevMsgBrush <- brush
-
-                // add to buffer
-                if addNewLine then
-                    buffer.AppendLine(txt)  |> ignore<StringBuilder>
-                    docLength <- docLength + txt.Length + newLine.Length
+                if not stillLessThanMaxChars then
+                    false // check again within the lock, another thread might have just reached the maximum
                 else
-                    buffer.Append(txt)  |> ignore<StringBuilder>
-                    docLength <- docLength + txt.Length
+                    // check if total text in log would get too big. Needed when log gets piled up with exception messages form Avalonedit rendering pipeline.
+                    let room = maxCharsInLog - docLength // might be negative if MaximumCharacterAllowance was lowered
+                    let fullLength = txt.Length + (if addNewLine then newLine.Length else 0)
+                    let fits = fullLength <= room
+                    let printLength = if fits then txt.Length else max 0 (min txt.Length room) // print only the part of txt that fits
 
-                scheduleFlush()
+                    if fits || printLength > 0 then
+                        // Change color if needed:
+                        if not (Object.ReferenceEquals(prevMsgBrush, brush)) then
+                            pendingColors.Add { off = buffer.Length; brush = brush }
+                            prevMsgBrush <- brush
+                        // add to buffer
+                        buffer.Append(txt, 0, printLength)  |> ignore<StringBuilder>
+                        if fits && addNewLine then
+                            buffer.Append(newLine)  |> ignore<StringBuilder>
+
+                    if fits then
+                        docLength <- docLength + fullLength
+                    else
+                        // the maximum is reached, add the stop message, then ignore all prints till the log gets cleared:
+                        stillLessThanMaxChars <- false
+                        let itsOverTxt = sprintf "%s%s  **** STOP OF LOGGING **** Log has more than %d characters! Clear Log view first %s%s%s%s %s" newLine newLine maxCharsInLog  newLine newLine  newLine newLine newLine
+                        let red = Brushes.Red |> freeze
+                        pendingColors.Add { off = buffer.Length; brush = red }
+                        prevMsgBrush <- red
+                        buffer.Append(itsOverTxt)  |> ignore<StringBuilder>
+                        docLength <- docLength + printLength + itsOverTxt.Length
+
+                    scheduleFlush()
                 )
 
-            // check if total text in log  is already to big , print it and then stop printing
-            if docLength > maxCharsInLog && isAlive then // needed when log gets piled up with exception messages form Avalonedit rendering pipeline.
-                stillLessThanMaxChars <- false
-                let itsOverTxt = sprintf "%s%s  **** STOP OF LOGGING **** Log has more than %d characters! Clear Log view first %s%s%s%s " newLine newLine maxCharsInLog  newLine newLine  newLine newLine
-                lock buffer (fun () ->
-                     pendingColors.Add { off = buffer.Length; brush = Brushes.Red |> freeze}
-                     buffer.AppendLine(itsOverTxt)  |> ignore<StringBuilder>
-                     docLength <- docLength + itsOverTxt.Length
-                     scheduleFlush() |> ignore<bool>
-                    )
-
-            elif flushNow then
+            if flushNow then
                 printToLog()
 
     let print (br:SolidColorBrush, s) =
@@ -288,6 +295,7 @@ type AvalonLog () =
     /// By default this about one Million characters
     /// This is to avoid freezing the UI when the AvalonLog is flooded with text.
     /// When the maximum is reached a message will be printed at the end, then the printing stops until the content is cleared.
+    /// A print that would go beyond the maximum gets cut off at the maximum.
     member _.MaximumCharacterAllowance
         with get () = maxCharsInLog
         and  set v  = maxCharsInLog <- v

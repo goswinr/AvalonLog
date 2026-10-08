@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Printing a null string threw a NullReferenceException, now it prints nothing
 - The undo stack kept a copy of all printed text, it is disabled now
 - An exception while sending text to the UI thread from a background timer could terminate the host process. Printing also stops by itself once the UI Dispatcher shuts down
+- When `MaximumCharacterAllowance` was reached by several threads at once, the stop message could get printed more than once. A single print that is longer than the remaining allowance now gets cut off at the maximum, so it cannot freeze the UI
 - Clearing the log while another thread was printing made that thread's text lose its color
 - A color change in the middle of a line split the rest of the line into one element per character, making its redraw up to 100x slower
 
