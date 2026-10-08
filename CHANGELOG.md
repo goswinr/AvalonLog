@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- Text printed with the default color (`Append`, `AppendLine`) now always uses the current `Foreground` of the editor, so it follows theme changes. Before, it was a copy of the Foreground at creation (or at the last `Clear()`).
 - Printing never blocks the printing thread. One shared timer posts the text to the UI thread, at most every `PrintInterval` (50 ms). A single printfn now updates the screen once instead of twice. Printing 200k lines via `Console.Out` is about 10x faster.
 
 ### Fixed

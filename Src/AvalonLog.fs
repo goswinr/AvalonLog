@@ -31,13 +31,10 @@ type AvalonLog () =
     let pendingColors = ResizeArray<NewColor>()
 
 
-    /// Same as default foreground in underlying AvalonEdit.
-    /// Will be changed if AvalonEdit foreground brush changes
-    let mutable defaultBrush    = Brushes.Black     |> freeze // should be same as default foreground. Will be set on foreground color changes
-
     /// The last brush or color used, for e.g. AppendWithLastColor.
     /// Each print call reads it only once, so that a print from another thread can't change the color in between.
-    let mutable customBrush     = Brushes.Black     |> freeze   // will be changed anyway on first call
+    /// null is the default foreground of the editor. (The text printed with null brush is never colored, so it follows changes of log.Foreground)
+    let mutable customBrush : SolidColorBrush = null
 
     /// Brushes get used on the UI thread, so they need to be frozen, if they were created on another thread.
     /// A brush can only be frozen by the thread it belongs to, a brush of another thread (e.g. the UI thread) is used as is.
@@ -95,9 +92,6 @@ type AvalonLog () =
         match log.TextArea.LeftMargins.[0]  with  // the line number margin
         | :? Editing.LineNumberMargin as lm -> lm.HighlightCurrentLineNumber <- false // disable highlighting of current line number
         | _ -> ()
-
-        defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze) // just to be sure they are the same
-        //log.Foreground.Changed.Add ( fun _ -> LogColors.consoleOut <- (log.Foreground.Clone() :?> SolidColorBrush |> freeze)) // this event attaching can't  be done because it is already frozen
 
     let mutable prevMsgBrush = null //null is no color for console // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
     let buffer =  new StringBuilder()
@@ -342,7 +336,6 @@ type AvalonLog () =
             offsetColors.Clear()
             offsetColors.Add {off = -1 ; brush=null}  // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
             log.Clear()
-            defaultBrush <- (log.Foreground.Clone() :?> SolidColorBrush |> Brush.freeze)   // TODO or remember custom brush ?
             )
 
 
@@ -408,9 +401,10 @@ type AvalonLog () =
     //--------- Append string: -------------
     //--------------------------------------
 
-    /// Print string using default color (Black)
+    /// Print string using the default color, the Foreground of the underlying AvalonEdit.
+    /// This text follows later changes of that Foreground.
     member _.Append (s) =
-        printOrBuffer (s, false, defaultBrush )
+        printOrBuffer (s, false, null)
 
     /// Print string using red, green and blue color values (each between 0 and 255).
     /// (without adding a new line at the end).
@@ -435,10 +429,11 @@ type AvalonLog () =
     //--------- AppendLine string:----------
     //--------------------------------------
 
-    /// Print string using default color (Black)
+    /// Print string using the default color, the Foreground of the underlying AvalonEdit.
+    /// This text follows later changes of that Foreground.
     /// Adds a new line at the end
     member _.AppendLine (s) =
-        printOrBuffer (s, true, defaultBrush )
+        printOrBuffer (s, true, null)
 
     /// Print string using red, green and blue color values (each between 0 and 255).
     /// Adds a new line at the end
