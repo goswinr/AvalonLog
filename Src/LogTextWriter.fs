@@ -17,7 +17,11 @@ open AvalonEditB.Document
 /// To set Console.Out to a text writer get one via AvalonLog.GetTextWriter(red,green,blue)
 type LogTextWriter(write:string->unit, writeLine:string->unit) =
     inherit TextWriter()
-    override _.Encoding = Text.Encoding.Default // ( UTF-16 )
+
+    static let utf8 = new UTF8Encoding(false)
+
+    /// UTF-8 without BOM, the same as Encoding.Default on .NET Core. (On .NET Framework Encoding.Default is the ANSI code page)
+    override _.Encoding = utf8 :> Encoding
 
     override _.Write (s:string)  =
         //if s.Contains "\u001b" then  write ("esc"+s) else write ("?"+s) //debugging for using  spectre ?? https://github.com/spectreconsole/spectre.console/discussions/573

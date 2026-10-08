@@ -78,7 +78,7 @@ type AvalonLog () =
         log.FontSize <- 14.0
         log.IsReadOnly <- true
         log.Document.UndoStack.SizeLimit <- 0 // read only, so don't keep a copy of every appended text for undo
-        log.Encoding <- Text.Encoding.Default // = UTF-16
+        log.Encoding <- new UTF8Encoding(false) // used when saving to a file. Encoding.Default would be the ANSI code page on .NET Framework
         log.ShowLineNumbers  <- true
         log.Options.EnableHyperlinks <- true
         log.TextArea.SelectionCornerRadius <- 0.0
