@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - TextWriter: `Write(char)`, `Write(char[])`, `Write(ReadOnlySpan<char>)` and `Write(StringBuilder)` were silently dropped
 - Printing a null string threw a NullReferenceException, now it prints nothing
+- The undo stack kept a copy of all printed text, it is disabled now
 
 ## [0.20.0] - 2025-03-19
 ### Changed

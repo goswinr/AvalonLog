@@ -54,6 +54,7 @@ type AvalonLog () =
         log.FontFamily <- FontFamily("Cascadia Code") // default font
         log.FontSize <- 14.0
         log.IsReadOnly <- true
+        log.Document.UndoStack.SizeLimit <- 0 // read only, so don't keep a copy of every appended text for undo
         log.Encoding <- Text.Encoding.Default // = UTF-16
         log.ShowLineNumbers  <- true
         log.Options.EnableHyperlinks <- true
