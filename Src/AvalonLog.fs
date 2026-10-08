@@ -143,8 +143,13 @@ type AvalonLog () =
     /// It only runs while a flush is pending. Started in scheduleFlush().
     let flushTimer =
         new Timer( TimerCallback(fun _ ->
-            if isAlive then
-                log.Dispatcher.BeginInvoke(Action printToLog) |> ignore<Windows.Threading.DispatcherOperation>
+            // This runs on a threadpool thread, an unhandled exception here would terminate the host process (e.g. Revit).
+            try
+                let disp = log.Dispatcher
+                if isAlive && not disp.HasShutdownStarted then
+                    disp.BeginInvoke(Action printToLog) |> ignore<Windows.Threading.DispatcherOperation>
+            with _ ->
+                () // e.g. the dispatcher started to shut down after the check above
             ), null, Timeout.Infinite, Timeout.Infinite)
 
     /// Makes sure that printToLog() will run soon, call within lock buffer.
@@ -221,8 +226,8 @@ type AvalonLog () =
     //----------------------exposed AvalonEdit members:----------
     //-----------------------------------------------------------
 
-    /// if not alive all calls to Dispatcher.Invoke will be cancelled
-    /// because they can throw a TaskCanceledException while some errors print to stdout during host shutdown (Fesh.Revit 2025)
+    /// If not alive, all print calls are ignored and nothing more gets sent to the UI thread.
+    /// Set it to false when the host shuts down. (Printing also stops by itself once the UI Dispatcher starts shutting down.)
     member _.IsAlive
         with get() = isAlive
         and set v  = isAlive <- v

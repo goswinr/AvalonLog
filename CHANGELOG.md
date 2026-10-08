@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TextWriter: `Write(char)`, `Write(char[])`, `Write(ReadOnlySpan<char>)` and `Write(StringBuilder)` were silently dropped
 - Printing a null string threw a NullReferenceException, now it prints nothing
 - The undo stack kept a copy of all printed text, it is disabled now
+- An exception while sending text to the UI thread from a background timer could terminate the host process. Printing also stops by itself once the UI Dispatcher shuts down
 - Clearing the log while another thread was printing made that thread's text lose its color
 - A color change in the middle of a line split the rest of the line into one element per character, making its redraw up to 100x slower
 
