@@ -66,6 +66,11 @@ type AvalonLog () =
 
     let mutable isAlive = true
 
+    /// True if the view should scroll to the end when new text gets printed. Only used on the UI thread.
+    /// It is only updated when the scroll offset changes. So scrolling up stops following the new text, scrolling to the end resumes it.
+    /// (A wrapped last line that gets taller during layout changes the extent but not the offset, so it does not stop the following.)
+    let mutable followEnd = true
+
     do
         base.Content <- log  //nest Avalonedit inside a simple ContentControl to hide most of its functionality
 
@@ -92,6 +97,12 @@ type AvalonLog () =
         match log.TextArea.LeftMargins.[0]  with  // the line number margin
         | :? Editing.LineNumberMargin as lm -> lm.HighlightCurrentLineNumber <- false // disable highlighting of current line number
         | _ -> ()
+
+        let textView = log.TextArea.TextView
+        textView.ScrollOffsetChanged.Add (fun _ ->
+            let si = textView :> Primitives.IScrollInfo
+            followEnd <- si.VerticalOffset + si.ViewportHeight >= si.ExtentHeight - 1.0
+            )
 
     let mutable prevMsgBrush = null //null is no color for console // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
     let buffer =  new StringBuilder()
@@ -145,8 +156,9 @@ type AvalonLog () =
             for c in cols do
                 offsetColors.Add { off = docOff + c.off; brush = c.brush }
             log.AppendText(txt)
-            log.ScrollToEnd()
-            if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712
+            if followEnd then // don't scroll if the user scrolled up to read something
+                log.ScrollToEnd()
+                if log.WordWrap then log.ScrollToEnd() //this is needed a second time. see  https://github.com/dotnet/fsharp/issues/3712
 
     /// The one timer that triggers printToLog() on the UI thread.
     /// It only runs while a flush is pending. Started in scheduleFlush().
@@ -336,6 +348,7 @@ type AvalonLog () =
             offsetColors.Clear()
             offsetColors.Add {off = -1 ; brush=null}  // null check done in  this.ColorizeLine(line:AvalonEdit.Document.DocumentLine) ..
             log.Clear()
+            followEnd <- true
             )
 
 
