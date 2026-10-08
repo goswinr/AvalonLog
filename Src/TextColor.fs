@@ -1,4 +1,4 @@
-﻿namespace AvalonLog
+namespace AvalonLog
 
 open AvalonLog.Util
 open System
@@ -12,54 +12,32 @@ open System.Windows.Media // for color brushes
 type internal NewColor =
     {
     off   : int
-    brush : SolidColorBrush // brush must be frozen to be used async
+    brush : SolidColorBrush // brush must be frozen to be used async, null means the default foreground of the editor
     }
 
-    /// Does binary search to find an offset that is equal or smaller than currOff
-    static member findCurrentInList (cs:ResizeArray<NewColor>) currOff :NewColor =
+    /// Does binary search to find the index of the last item with an offset equal or smaller than currOff.
+    /// Returns 0 if there is no such item.
+    static member findIndex (cs:ResizeArray<NewColor>) currOff :int =
         //  cs has a least one item that is {off = -1 ; brush=null}, set in AvalonLog constructor
-
-        let last = cs.Count-1  //TODO: is it possible that count increases while iterating?
-        let rec find lo hi =
-            let mid = lo + (hi - lo) / 2          //TODO test edge conditions !!
+        let mutable lo = 0
+        let mutable hi = cs.Count - 1
+        let mutable found = 0
+        while lo <= hi do
+            let mid = lo + (hi - lo) / 2
             if cs.[mid].off <= currOff then
-                if mid = last                 then cs.[mid] // exit
-                elif cs.[mid+1].off > currOff then cs.[mid] // exit
-                else find (mid+1) hi
+                found <- mid
+                lo <- mid + 1
             else
-                find lo (mid-1)
-        find 0 last
-
-/// Describes the start and end position of a color with one line
-[<Struct>]
-[<NoComparison>]
-type internal RangeColor =
-    {
-    start :int
-    ende  :int
-    brush :SolidColorBrush // brush must be frozen to be used async
-    }
-
-    /// Finds all the offset that apply to this line  which is defined by the range of  tOff to enOff
-    /// even if the ResizeArray<NewColor> does not contain any offset between stOff and  enOff
-    /// it still returns the a list with one item. The closest previous offset
-    static member getInRange (cs:ResizeArray<NewColor>) stOff enOff =
-        let rec mkList i ls =
-            let c = NewColor.findCurrentInList cs i
-            if c.off <= stOff  then
-                {start = stOff ; ende = enOff ; brush = c.brush} :: ls
-            else
-                mkList (i-1) ({start = i; ende = enOff ; brush = c.brush}  :: ls)
-        mkList enOff []
+                hi <- mid - 1
+        found
 
 
 /// To implement the actual colors from colored printing
-type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>, defaultBrush) =
+type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<NewColor>) =
     inherit Rendering.DocumentColorizingTransformer()
 
     let mutable selStart = -9
     let mutable selEnd   = -9
-    let mutable any = false
 
     member _.SelectionChangedDelegate (_:EventArgs) =
         if ed.SelectionLength = 0 then // no selection
@@ -75,34 +53,34 @@ type internal ColorizingTransformer(ed:TextEditor, offsetColors: ResizeArray<New
         if not line.IsDeleted then
             let stLn = line.Offset
             let enLn = line.EndOffset
-            let cs = RangeColor.getInRange offsetColors stLn enLn
-            any <- false
 
-            // color non selected lines
-            if selStart = selEnd  || selStart > enLn || selEnd < stLn then// no selection in general or on this line
-                for c in cs do
-                    if c.brush = null && any then //changing the base-foreground is only needed if any other color already exists on this line
-                        base.ChangeLinePart(c.start, c.ende, fun element -> element.TextRunProperties.SetForegroundBrush(defaultBrush))
-                    else
-                        if notNull c.brush then // might still happen on first line
-                            any <-true
-                            base.ChangeLinePart(c.start, c.ende, fun el -> el.TextRunProperties.SetForegroundBrush(c.brush))
+            // The selected parts of this line, they don't get colored, so that the selection foreground shows:
+            let selOnLine =
+                if selStart = selEnd  || selStart > enLn || selEnd < stLn then null // no selection in general or on this line
+                else
+                    let sel = ResizeArray<Editing.SelectionSegment>()
+                    for seg in ed.TextArea.Selection.Segments do // more than one for rectangular selection
+                        if seg.EndOffset > stLn && seg.StartOffset < enLn then
+                            sel.Add seg
+                    if sel.Count = 0 then null else sel
 
-            /// exclude selection from coloring:
-            else
-                for c in cs do
-                    let br = if isNull c.brush then defaultBrush else c.brush
-                    let st = c.start
-                    let en = c.ende
-                    // now consider block or rectangle selection:
-                    for seg in ed.TextArea.Selection.Segments do
-                        if   seg.EndOffset   < stLn then () // this segment is on another line
-                        elif seg.StartOffset > enLn then () // this segment is on another line
+            // walk forward from the color that is active at the line start, each color run gets colored once:
+            let mutable i = NewColor.findIndex offsetColors stLn
+            while i < offsetColors.Count && offsetColors.[i].off < enLn do
+                let br = offsetColors.[i].brush
+                if notNull br then // null is the default foreground, nothing to do
+                    let st = max stLn offsetColors.[i].off
+                    let en = if i + 1 < offsetColors.Count then min enLn offsetColors.[i+1].off else enLn
+                    if st < en then
+                        let setColor = Action<Rendering.VisualLineElement>(fun el -> el.TextRunProperties.SetForegroundBrush br)
+                        if isNull selOnLine then
+                            base.ChangeLinePart(st, en, setColor)
                         else
-                            if   seg.StartOffset =   seg.EndOffset then base.ChangeLinePart(st,  en, fun el -> el.TextRunProperties.SetForegroundBrush(br))  // the selection segment is after the line end, this might happen in block selection
-                            elif seg.StartOffset >   en            then base.ChangeLinePart(st,  en, fun el -> el.TextRunProperties.SetForegroundBrush(br))  // the selection segment comes after this color section
-                            elif seg.EndOffset   <=  st            then base.ChangeLinePart(st,  en, fun el -> el.TextRunProperties.SetForegroundBrush(br))  // the selection segment comes before this color section
-                            else
-                                if st <  seg.StartOffset then base.ChangeLinePart(st           ,  seg.StartOffset, fun el -> el.TextRunProperties.SetForegroundBrush(br))
-                                if en >  seg.EndOffset   then base.ChangeLinePart(seg.EndOffset,  en             , fun el -> el.TextRunProperties.SetForegroundBrush(br))
-
+                            // only color the parts that are not selected:
+                            let mutable from = st
+                            for seg in selOnLine do
+                                if seg.EndOffset > from && seg.StartOffset < en then
+                                    if seg.StartOffset > from then base.ChangeLinePart(from, seg.StartOffset, setColor)
+                                    from <- max from seg.EndOffset
+                            if from < en then base.ChangeLinePart(from, en, setColor)
+                i <- i + 1

@@ -42,7 +42,7 @@ type AvalonLog () =
 
     let log =  new TextEditor()
     let hiLi = new SelectedTextHighlighter(log)
-    let color = new ColorizingTransformer(log, offsetColors, defaultBrush)
+    let color = new ColorizingTransformer(log, offsetColors)
 
     let searchPanel = Search.SearchPanel.Install(log, enableReplace = false)  // disable replace via search replace dialog
 
