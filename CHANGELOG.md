@@ -6,15 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.21.0] - 2026-10-10
 ### Added
 - Tests (xunit), run them with `dotnet test`
+- `SelectedTextHighlighter.ClearHighlight()` to remove the highlights of all occurrences of the selected text
 
 ### Changed
+- Highlights of all occurrences of the selected text now stay until Escape is pressed in the log (after closing the search panel, if open) or a new text is selected
+- Selected text is never highlighted by the `SelectedTextHighlighter`, also within multi-line and rectangular selections, because the selection has its own highlighting
+- `OnHighlightChanged` is also raised when the text changes, to keep the count up to date while a highlight is shown
+- Update AvalonEditB to 2.5.0
 - New text only scrolls the view to the end if it was already at the end. So you can scroll up and read while text is printed. Scrolling back to the end resumes following.
 - Text printed with the default color (`Append`, `AppendLine`) now always uses the current `Foreground` of the editor, so it follows theme changes. Before, it was a copy of the Foreground at creation (or at the last `Clear()`).
 - Printing never blocks the printing thread. One shared timer posts the text to the UI thread, at most every `PrintInterval` (50 ms). A single printfn now updates the screen once instead of twice. Printing 200k lines via `Console.Out` is about 10x faster.
 
 ### Fixed
+- `SelectedTextHighlighter`: the background count search is delayed by 100 ms and only raises `OnHighlightChanged` if no newer search or clearing happened, so results can no longer arrive out of order or after `OnHighlightCleared`. Disabling via `IsEnabled` no longer raises `OnHighlightCleared` twice. Setting `ColorHighlighting` redraws immediately
 - TextWriter: `Write(char)`, `Write(char[])`, `Write(ReadOnlySpan<char>)` and `Write(StringBuilder)` were silently dropped
 - Printing a null string threw a NullReferenceException, now it prints nothing
 - The undo stack kept a copy of all printed text, it is disabled now
