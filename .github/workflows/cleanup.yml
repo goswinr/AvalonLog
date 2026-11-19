@@ -1,8 +1,11 @@
-# https://github.com/marketplace/actions/delete-workflow-runs
 name: Delete old workflow runs
+# Keeps only the newest run of every workflow, whatever its conclusion, and also the newest run on the default branch,
+# because the badges in the readme show the default branch, and its newest run may be older than one from a pull request.
+# Workflows are read from the API, so this file works unchanged in any repo (dynamic ones like Dependabot included).
+# Only run IDs that were just listed get deleted, so a failed or incomplete listing deletes less, never more.
 on:
   schedule:
-    - cron: "0 4 * * 1" # Weekly on Monday at 04:00
+    - cron: "0 4 * * 1" # Weekly on Monday at 04:00 UTC
   # to allow manual triggering of the workflow from the GitHub Actions tab:
   workflow_dispatch:
 
@@ -11,38 +14,60 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-      contents: read
     steps:
+      - name: Delete all but the newest run of each workflow, and the newest one on the default branch
+        env:
+          GH_TOKEN: ${{ github.token }} # used by the gh CLI for authentication
+          REPO: ${{ github.repository }} # owner/name, e.g. goswinr/Rhino.Scripting.FSharp
+        run: | # shell
+          # stop on any error, on unset variables, and if any command in a pipe fails (not just the last one)
+          set -euo pipefail
 
-      - name: Delete all workflow runs but docs,test and build
-        # those are kept for badges in readme
-        uses: Mattraks/delete-workflow-runs@v2.1.0
-        with:
-          token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          delete_workflow_pattern: dependabot|cleanup|releaseNuget|outdatedNuget
-          retain_days: 0
-          keep_minimum_runs: 0
-          delete_run_by_conclusion_pattern: success
+          # the branch the readme badges show when they have no ?branch= parameter, usually main
+          defaultBranch=$(gh api "repos/$REPO" --jq '.default_branch')
 
+          # list all workflows of the repo, one line per workflow: "<id><TAB><name>"
+          # --paginate fetches all pages, --jq formats each workflow with jq
+          gh api --paginate "repos/$REPO/actions/workflows" --jq '.workflows[] | "\(.id)\t\(.name)"' |
+          # read each line, split at the tab into the two variables
+          while IFS=$'\t' read -r wfId wfName; do
 
-      - name: Delete all but last run of all other workflow runs ( docs, test and build)
-        uses: Mattraks/delete-workflow-runs@v2.1.0
-        with:
-          token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          retain_days: 0
-          # keep only last build, docs, and test run for badge in readme,
-          # this job runs one per action name.
-          # this will also keep runs older than 'retain_days'
-          keep_minimum_runs: 1
-          delete_run_by_conclusion_pattern: success
+            # list all runs of this workflow, one line per run: "<created_at><TAB><run id><TAB><status><TAB><branch>"
+            # (git branch names can't contain a tab, so the branch is always one whole field)
+            # sort -r: newest first, created_at is an ISO timestamp so text order is time order
+            # awk: drop lines whose run id (field 2) was already seen,
+            #      so that a run listed twice can't push the newest run onto the delete list
+            runs=$(gh api --paginate "repos/$REPO/actions/workflows/$wfId/runs?per_page=100" \
+                     --jq '.workflow_runs[] | "\(.created_at)\t\(.id)\t\(.status)\t\(.head_branch)"' | sort -r | awk -F '\t' '!seen[$2]++')
 
-      - name: Delete all failed runs older than 30 days
-        uses: Mattraks/delete-workflow-runs@v2.1.0
-        with:
-          token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          retain_days: 30
-          keep_minimum_runs: 0
-          delete_run_by_conclusion_pattern: cancelled, failure, skipped
+            # workflows without any runs have nothing to delete
+            if [ -z "$runs" ]; then
+              echo "== $wfName: no runs"
+              continue
+            fi
+
+            # keep the first line, the newest run of any branch (cut -f 2 takes the run id),
+            # and the first line whose branch (field 4) is the default branch, the run the badge shows.
+            # Without the second one, a pull request run that is newer than the last push to main
+            # would be the only run kept, and the badge would show "no status".
+            # Both are the same run if the newest run is on the default branch.
+            keepNewest=$(head -n 1 <<< "$runs" | cut -f 2)
+            keepDefault=$(awk -F '\t' -v branch="$defaultBranch" '$4 == branch { print $2; exit }' <<< "$runs")
+            echo "== $wfName: keeping newest run $keepNewest and newest run on $defaultBranch ${keepDefault:-(none)}"
+
+            # all other runs are older, delete them one by one
+            while IFS=$'\t' read -r created runId status branch; do
+              if [ "$runId" = "$keepNewest" ] || [ "$runId" = "$keepDefault" ]; then
+                continue
+              elif [ "$status" != "completed" ]; then
+                # queued or in progress runs can't be deleted yet, the next cleanup will get them
+                echo "   skipping run $runId ($status)"
+              elif gh api -X DELETE "repos/$REPO/actions/runs/$runId" --silent < /dev/null; then
+                # < /dev/null: gh must not read stdin, that is the list of runs this loop reads
+                echo "   deleted run $runId from $created on $branch"
+              else
+                # a failed delete is reported as a warning in the run summary but does not stop the cleanup
+                echo "::warning::Could not delete run $runId of $wfName"
+              fi
+            done <<< "$runs"
+          done
