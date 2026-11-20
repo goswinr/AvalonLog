@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- the hosts AvalonLog runs in: .NET Framework (e.g. Revit 2024 and older) and .NET 8 (Revit 2025 and newer) -->
-    <TargetFrameworks>net472;net8.0-windows</TargetFrameworks>
+    <TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
