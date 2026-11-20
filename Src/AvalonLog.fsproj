@@ -10,8 +10,8 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages> <!--to only have the english resources-->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
-    <!-- This is to exclude the FSharp.Core reference from the nuget package,
-    for using AvalonLog in Fesh.Revit it would have to match exactly the one from Fesh -->
+    <!-- No implicit FSharp.Core reference, the explicit one below compiles against an old FSharp.Core
+    and keeps it out of the nuget dependencies, so the host (e.g. Fesh.Revit) decides the FSharp.Core version -->
     <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
 
     <RootNamespace>AvalonLog</RootNamespace>
@@ -62,8 +62,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Fesh.Revit depends on this repo and if FSharp.Core is not on the same version here there is an assembly loading error , so use DisableImplicitFSharpCoreReference-->
-    <PackageReference Update="FSharp.Core" Version="6.0.7" /> <!-- if "Update" is used it will be excluded from the final package because of DisableImplicitFSharpCoreReference-->
+    <!-- Compile against FSharp.Core 6.0.7 so that AvalonLog works with FSharp.Core 6.0.7 and any newer one.
+    'Include' is needed, an 'Update' does nothing because of DisableImplicitFSharpCoreReference, then the compiler would use the FSharp.Core bundled with the .NET SDK.
+    PrivateAssets="all" keeps it out of the nuget package dependencies, so the host (e.g. Fesh.Revit) decides the FSharp.Core version. -->
+    <PackageReference Include="FSharp.Core" Version="6.0.7" PrivateAssets="all" />
     <PackageReference Include="AvalonEditB" Version="2.5.0" />
     <PackageReference Include="Ionide.KeepAChangelog.Tasks" Version="0.4.0" PrivateAssets="all" />
     <!-- SourceLink is built into the .NET 8+ SDK, no Microsoft.SourceLink.GitHub package needed -->

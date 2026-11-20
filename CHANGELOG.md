@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Target net48 instead of net472
+- Compile against FSharp.Core 6.0.7 (0.21.0 was accidentally compiled against FSharp.Core 10.1), so it works with FSharp.Core 6.0.7 and newer. FSharp.Core is still not a package dependency
 
 ## [0.21.0] - 2026-10-10
 ### Added
