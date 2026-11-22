@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.22.0] - 2026-11-23
 ### Changed
+- Update to AvalonEditB 2.6.1
 - Target net48 instead of net472
 - Compile against FSharp.Core 6.0.7 (0.21.0 was accidentally compiled against FSharp.Core 10.1), so it works with FSharp.Core 6.0.7 and newer. FSharp.Core is still not a package dependency
 

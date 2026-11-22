@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <UseWPF>true</UseWPF>
-    <TargetFrameworks>net48;net7.0-windows</TargetFrameworks> <!-- FsDoc will use the first target framework: https://fsprojects.github.io/FSharp.Formatting/apidocs.html#Selected-projects -->
+    <TargetFrameworks>net48;net8.0-windows</TargetFrameworks> <!-- FsDoc will use the first target framework: https://fsprojects.github.io/FSharp.Formatting/apidocs.html#Selected-projects -->
     <LangVersion>preview</LangVersion>
 
     <NeutralLanguage>en</NeutralLanguage>
@@ -66,7 +66,7 @@
     'Include' is needed, an 'Update' does nothing because of DisableImplicitFSharpCoreReference, then the compiler would use the FSharp.Core bundled with the .NET SDK.
     PrivateAssets="all" keeps it out of the nuget package dependencies, so the host (e.g. Fesh.Revit) decides the FSharp.Core version. -->
     <PackageReference Include="FSharp.Core" Version="6.0.7" PrivateAssets="all" />
-    <PackageReference Include="AvalonEditB" Version="2.5.0" />
+    <PackageReference Include="AvalonEditB" Version="2.6.1" />
     <PackageReference Include="Ionide.KeepAChangelog.Tasks" Version="0.4.0" PrivateAssets="all" />
     <!-- SourceLink is built into the .NET 8+ SDK, no Microsoft.SourceLink.GitHub package needed -->
 
